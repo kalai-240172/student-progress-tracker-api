@@ -283,6 +283,75 @@ h1, h2, h3, p { margin-top: 0; }
 .overdue-task-info span { color: #9098a9; font-size: 10px; }
 .overdue-row .field { min-width: 155px; font-size: 10px; }
 .overdue-row .field input { min-height: 36px; border: 1px solid #dfe3ec; border-radius: 8px; padding: 7px 9px; font-size: 11px; }
+.report-filter-panel { margin-bottom: 15px; }
+.report-period-toolbar, .report-period-buttons, .report-period-navigation { display: flex; align-items: center; gap: 8px; }
+.report-period-toolbar { flex-wrap: wrap; justify-content: space-between; }
+.report-period-navigation strong { color: #596277; font-size: 11px; font-weight: 620; }
+.report-custom-range { display: flex; align-items: flex-end; gap: 12px; margin-top: 15px; }
+.report-custom-range .field { min-width: 160px; }
+.report-custom-range input { min-height: 38px; border: 1px solid #dfe3ec; border-radius: 8px; padding: 8px 10px; color: #344057; background: #fff; font-size: 11px; }
+.report-range-caption { margin: 12px 0 0; color: #9299a8; font-size: 10px; }
+.report-metrics-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 11px; margin-bottom: 14px; }
+.report-metric-card { display: grid; min-height: 116px; grid-template-columns: 33px 1fr; align-content: center; align-items: center; gap: 4px 9px; border: 1px solid #e9ecf2; border-radius: 11px; background: #fff; padding: 14px; box-shadow: var(--shadow); }
+.report-metric-icon { display: grid; width: 31px; height: 31px; grid-row: span 3; place-items: center; border-radius: 9px; color: #5b5fe9; background: #f0f0ff; }
+.report-metric-card > span:nth-child(2) { color: #9098a9; font-size: 10px; }
+.report-metric-card strong { color: #293248; font-size: 17px; line-height: 1.35; }
+.report-metric-card small { color: #9aa1af; font-size: 9px; line-height: 1.4; }
+.report-charts-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.report-chart-panel { min-width: 0; }
+.report-chart { width: 100%; height: 270px; }
+.report-chart-note { margin: 6px 0 0; color: #9198a8; font-size: 9px; }
+.academic-grading, .academic-section, .academic-formula { margin-bottom: 16px; }
+.academic-grading .panel-heading { align-items: center; margin-bottom: 14px; }
+.academic-scheme-badge { border-radius: 999px; padding: 6px 9px; color: #5157c9; background: #f0f0ff; font-size: 10px; font-weight: 650; white-space: nowrap; }
+.grade-point-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.grade-point-list > span { display: flex; min-width: 75px; flex-direction: column; gap: 4px; border: 1px solid #eceef5; border-radius: 9px; padding: 9px 11px; background: #fbfbfe; }
+.grade-point-list strong { color: #333c52; font-size: 12px; }
+.grade-point-list small { color: #838b9d; font-size: 10px; }
+.academic-note { margin: 12px 0 0; color: #81899b; font-size: 11px; line-height: 1.6; }
+.academic-summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+.academic-metric { display: grid; min-height: 86px; align-content: center; gap: 8px; border: 1px solid #e9ecf2; border-radius: 11px; background: #fff; padding: 14px 16px; box-shadow: var(--shadow); }
+.academic-metric span { color: #81899b; font-size: 10px; font-weight: 560; }
+.academic-metric strong { color: #283147; font-size: 19px; font-weight: 700; }
+.academic-editor { margin-bottom: 16px; }
+.academic-editor .panel-heading { margin-bottom: 12px; }
+.academic-form { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.academic-year-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 9px; }
+.academic-year-item { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 6px; border: 1px solid #e9ecf2; border-radius: 10px; padding: 8px; }
+.academic-item-selected { border-color: #b8baff !important; background: #f7f7ff !important; }
+.academic-item-select { display: grid; min-width: 0; flex: 1; gap: 5px; border: 0; padding: 5px; color: #343d53; background: transparent; text-align: left; }
+.academic-item-select strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.academic-item-select small { color: #8c94a5; font-size: 9px; }
+.academic-item-actions { display: flex; flex: none; }
+.academic-item-actions .button, .academic-table-actions .button { width: 31px; min-height: 31px; padding: 0; }
+.academic-section .panel-heading { align-items: center; }
+.academic-section .panel-heading > .button { flex: none; }
+.academic-editor-inline { margin: 14px 0; border: 1px solid #eceef4; border-radius: 10px; padding: 15px; background: #fbfbfe; }
+.academic-editor-inline h3 { margin: 0 0 13px; color: #343d53; font-size: 12px; }
+.academic-semester-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 13px; }
+.academic-semester-tab { display: grid; min-width: 150px; gap: 5px; border: 1px solid #e7eaf1; border-radius: 9px; padding: 10px 12px; color: #3c455b; background: #fff; text-align: left; }
+.academic-semester-tab strong { font-size: 11px; }
+.academic-semester-tab small { color: #8790a2; font-size: 9px; }
+.academic-semester-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-top: 1px solid #eff0f5; padding: 10px 0; color: #8a92a2; font-size: 10px; }
+.academic-semester-actions > div { display: flex; flex-wrap: wrap; }
+.academic-selected-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 4px 0 20px; }
+.academic-selected-summary .academic-metric { min-height: 70px; padding: 10px 12px; }
+.academic-selected-summary .academic-metric strong { font-size: 16px; }
+.academic-subject-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 3px 0 12px; }
+.academic-subject-heading h3 { margin: 0; color: #343d53; font-size: 13px; }
+.academic-subject-heading p { margin: 4px 0 0; color: #9098a8; font-size: 10px; }
+.academic-table-wrap { overflow-x: auto; border: 1px solid #eceef4; border-radius: 9px; }
+.academic-table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: left; }
+.academic-table th, .academic-table td { border-bottom: 1px solid #f0f1f5; padding: 11px 10px; white-space: nowrap; }
+.academic-table thead th { color: #848c9d; background: #fafbfe; font-size: 9px; font-weight: 650; }
+.academic-table tbody th { color: #333d53; font-weight: 620; }
+.academic-table tbody th small { display: block; margin-top: 4px; color: #969eae; font-size: 9px; font-weight: 450; }
+.academic-table tbody td { color: #666f83; }
+.academic-table tr:last-child > * { border-bottom: 0; }
+.academic-table-actions { display: flex; gap: 2px; }
+.academic-formula h2 { margin: 0 0 8px; color: #343d53; font-size: 13px; }
+.academic-formula p { margin: 5px 0; color: #81899a; font-size: 11px; line-height: 1.6; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
 .goal-detail-status { display: flex; align-items: center; gap: 12px; margin: -12px 0 18px; }
 .goal-detail-status > span:last-child { display: inline-flex; align-items: center; gap: 5px; color: #929aab; font-size: 10px; }
 .summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 15px; }
@@ -358,6 +427,9 @@ h1, h2, h3, p { margin-top: 0; }
   .history-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .overdue-row { align-items: stretch; flex-wrap: wrap; }
   .overdue-task-info { flex-basis: 100%; }
+  .report-metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .report-charts-grid { grid-template-columns: 1fr; }
+  .academic-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 850px) {
@@ -420,6 +492,18 @@ h1, h2, h3, p { margin-top: 0; }
   .history-filter-form .field { min-width: 0; }
   .history-streaks { grid-template-columns: 1fr 1fr; }
   .history-chart { height: 230px; }
+  .report-period-toolbar, .report-period-navigation { align-items: flex-start; }
+  .report-period-toolbar { flex-direction: column; }
+  .report-period-navigation { width: 100%; justify-content: space-between; flex-wrap: wrap; }
+  .report-period-navigation strong { flex: 1; text-align: center; }
+  .report-custom-range { align-items: stretch; flex-direction: column; }
+  .report-custom-range .field { min-width: 0; }
+  .academic-form { grid-template-columns: 1fr; }
+  .academic-form .field-span { grid-column: auto; }
+  .academic-semester-actions { align-items: flex-start; flex-direction: column; }
+  .academic-selected-summary { grid-template-columns: 1fr; }
+  .academic-subject-heading { align-items: flex-start; }
+  .report-chart { height: 230px; }
   .history-day-heading { align-items: flex-start; flex-direction: column; }
   .history-day-heading > div:last-child { flex-wrap: wrap; }
   .overdue-row .field { min-width: 0; flex: 1; }

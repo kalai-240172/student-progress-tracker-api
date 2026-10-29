@@ -57,6 +57,16 @@ public class DailyTaskController {
         return taskService.summarizeToday(authentication.getName());
     }
 
+    @GetMapping("/overdue")
+    public List<DailyTaskResponse> findOverdue(Authentication authentication) {
+        return taskService.findOverdue(authentication.getName());
+    }
+
+    @GetMapping("/study-streaks")
+    public StudyStreakResponse summarizeStreaks(Authentication authentication) {
+        return taskService.summarizeStreaks(authentication.getName());
+    }
+
     @GetMapping("/{id}")
     public DailyTaskResponse findById(Authentication authentication, @PathVariable Long id) {
         return taskService.findById(authentication.getName(), id);

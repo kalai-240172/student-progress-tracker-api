@@ -144,4 +144,35 @@ describe("API client", () => {
       status: "COMPLETED",
     });
   });
+
+  it("uses the existing authenticated API configuration for academic reads and writes", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
+      .mockResolvedValueOnce(new Response(
+        JSON.stringify({ headerName: "X-CSRF-TOKEN", token: "academic-csrf" }),
+        { status: 200 },
+      ))
+      .mockResolvedValueOnce(new Response(
+        JSON.stringify({ id: 4, label: "2026-2027" }),
+        { status: 201 },
+      ));
+    vi.stubGlobal("fetch", fetchMock);
+    setCredentials("student@example.com", "StrongPassword123!");
+
+    await api.listAcademicYears();
+    await api.createAcademicYear({
+      label: "2026-2027",
+      startDate: "2026-08-01",
+      endDate: "2027-05-31",
+    });
+
+    expect(String(fetchMock.mock.calls[0][0])).toContain("/api/academic-years");
+    const write = fetchMock.mock.calls[2][1] as RequestInit;
+    expect(new Headers(write.headers).get("X-CSRF-TOKEN")).toBe("academic-csrf");
+    expect(JSON.parse(write.body as string)).toEqual({
+      label: "2026-2027",
+      startDate: "2026-08-01",
+      endDate: "2027-05-31",
+    });
+  });
 });

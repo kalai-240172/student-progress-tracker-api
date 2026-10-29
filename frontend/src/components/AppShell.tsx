@@ -10,6 +10,8 @@ import {
   LogOut,
   Menu,
   NotebookTabs,
+  ChartNoAxesCombined,
+  GraduationCap,
   X,
 } from "lucide-react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
@@ -21,6 +23,8 @@ const navigation = [
   { to: "/tasks", label: "Daily tasks", icon: CalendarCheck2 },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/history", label: "Study history", icon: History },
+  { to: "/reports", label: "Reports", icon: ChartNoAxesCombined },
+  { to: "/academic", label: "Academic progress", icon: GraduationCap },
   { to: "/records", label: "Student records", icon: NotebookTabs },
 ];
 

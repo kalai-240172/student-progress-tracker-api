@@ -118,6 +118,49 @@ public class DailyTaskService {
                 actualMinutes);
     }
 
+    @Transactional(readOnly = true)
+    public List<DailyTaskResponse> findOverdue(String authenticatedEmail) {
+        User user = findAuthenticatedUser(authenticatedEmail);
+        return taskRepository
+                .findAllByUser_IdAndPlannedDateBeforeAndStatusNotOrderByPlannedDateDescIdAsc(
+                        user.getId(), LocalDate.now(), DailyTaskStatus.COMPLETED)
+                .stream()
+                .map(DailyTaskResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public StudyStreakResponse summarizeStreaks(String authenticatedEmail) {
+        User user = findAuthenticatedUser(authenticatedEmail);
+        LocalDate today = LocalDate.now();
+        List<LocalDate> completedDates = taskRepository.findDistinctCompletedDates(
+                user.getId(), DailyTaskStatus.COMPLETED, today);
+        long longest = 0;
+        long run = 0;
+        LocalDate previous = null;
+        for (LocalDate completedDate : completedDates) {
+            run = previous != null && previous.plusDays(1).equals(completedDate) ? run + 1 : 1;
+            longest = Math.max(longest, run);
+            previous = completedDate;
+        }
+
+        LocalDate currentRunEnd = completedDates.contains(today)
+                ? today
+                : completedDates.contains(today.minusDays(1)) ? today.minusDays(1) : null;
+        long current = 0;
+        if (currentRunEnd != null) {
+            LocalDate expected = currentRunEnd;
+            for (int index = completedDates.size() - 1; index >= 0; index--) {
+                if (!completedDates.get(index).equals(expected)) {
+                    break;
+                }
+                current++;
+                expected = expected.minusDays(1);
+            }
+        }
+        return new StudyStreakResponse(today, current, longest);
+    }
+
     private void validateDateFilters(LocalDate date, LocalDate startDate, LocalDate endDate) {
         if (date != null && (startDate != null || endDate != null)) {
             throw new DailyTaskDateFilterException(

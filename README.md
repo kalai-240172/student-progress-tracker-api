@@ -144,9 +144,61 @@ Daily tasks let each authenticated user plan study work by title, subject, date,
 
 Date range endpoints are inclusive and require both dates, with `startDate` on or before `endDate`. The `date` filter cannot be combined with a range. Today is based on the server's local date. Summary actual minutes sum only values recorded for today's tasks; missing values are not inferred. All task operations use the authenticated user and inaccessible task IDs return HTTP 404. The authenticated frontend includes the Daily tasks page at `/tasks`.
 
+## Calendar and study history
+
+The authenticated frontend provides a responsive month/week calendar at `/calendar` and study history at `/history`. The calendar uses Monday-first weeks, includes adjacent-month dates in the month grid, shows per-date task counts/completion, and loads the displayed period using inclusive `startDate`/`endDate` task filters. Selecting a date shows its tasks.
+
+History applies an inclusive start/end date range. It groups tasks by planned date and reports planned minutes, explicitly recorded actual minutes (missing values count as zero in the aggregate), completed-task count, and completion rate (`completed / task count`, zero when there are no tasks). Its chart compares daily planned and actual minutes. For a selected range, all fetched tasks belong to the authenticated user and fall within those inclusive dates.
+
+Study day and streak definitions:
+
+- A study day is a calendar date with at least one task whose status is `COMPLETED`.
+- The current streak counts consecutive study days ending today, or yesterday when today has no completed task yet. Otherwise it is zero.
+- The longest streak is the largest consecutive run of completed-task dates up through today.
+- Multiple completed tasks on one date count as one study day. Future-dated completions do not count.
+
+`GET /api/tasks/study-streaks` returns current and longest streak lengths. It queries distinct completed dates for the authenticated user rather than loading task entities. `GET /api/tasks/overdue` returns that user's tasks planned before the server's local today whose status is not `COMPLETED`. The history page can reschedule one by updating its planned date; this preserves its task ID and status. Tasks are never automatically completed or removed as a consequence of being overdue.
+
+## Reports dashboard
+
+The authenticated Reports page is available at `/reports`. It reuses `GET /api/tasks?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD`; no separate reporting endpoint or reporting data model is required. Weekly and monthly periods use inclusive start/end dates and stop at today. Custom ranges also require both dates, include both boundaries, and cannot end in the future. Only persisted task rows returned for the authenticated user are included, and task IDs are deduplicated before calculations.
+
+- Completed task count is the number of tasks with status `COMPLETED`.
+- Completion rate is completed tasks divided by **all tasks planned in the selected period**, including pending and in-progress tasks; an empty period reports zero rather than dividing by zero.
+- Planned minutes sum estimated durations for all tasks in the period.
+- Actual minutes sum only explicitly recorded actual durations. Missing actual durations contribute zero and are not inferred from estimates. The UI labels actual time as recorded.
+- Daily charts show planned versus recorded actual minutes and completed versus not-completed task counts. Dates without tasks are omitted rather than filled with fabricated activity.
+- Tasks planned for a future date are excluded from reports.
+
+The report query uses the existing authenticated-user-scoped task list; no client-supplied user identifier is accepted. Authentication and CSRF behavior are unchanged.
+
+## Academic progress
+
+The authenticated Academic Progress page is available at `/academic`. Each academic year belongs to the authenticated user; semesters are accessed through their year, and subjects through their semester. Academic data responses use DTOs and never include user or account details. No sample subjects or marks are created.
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `GET`, `POST` | `/api/academic-years` | List or create academic years |
+| `GET`, `PUT`, `DELETE` | `/api/academic-years/{id}` | Retrieve, edit, or delete an owned academic year |
+| `GET`, `POST` | `/api/academic-years/{yearId}/semesters` | List or create semesters within an owned year |
+| `GET`, `PUT`, `DELETE` | `/api/semesters/{id}` | Retrieve, edit, or delete an owned semester |
+| `GET`, `POST` | `/api/semesters/{semesterId}/subjects` | List or create subjects within an owned semester |
+| `GET`, `PUT`, `DELETE` | `/api/subjects/{id}` | Retrieve, edit, or delete an owned subject |
+| `GET` | `/api/semesters/{id}/summary` | Return subject marks and semester GPA |
+| `GET` | `/api/academic-years/{id}/summary` | Return semester summaries and year CGPA |
+| `GET` | `/api/academic-summary` | Return CGPA and summaries across the authenticated user's academic history |
+
+Academic-year labels and semester labels are required; dates are optional, but when both dates are supplied the end date cannot precede the start date. Subject names are required, credits and maximum marks must be positive, and obtained marks (when recorded) must be between zero and the maximum. Marks support up to two decimal places. Subject codes are optional and unique within a semester without regard to case. Deleting a semester with subjects or an academic year with semesters returns HTTP 409; delete its children first. No operation cascades across academic records.
+
+The default official R-2023 CBCCS mapping is `O = 10`, `A+ = 9`, `A = 8`, `B+ = 7`, `B = 6`, `C = 5`, and `U = 0`. The letter grade is recorded directly, separately from its derived grade point. The supplied college document does not specify marks-to-grade boundaries, so percentage never assigns or predicts a grade.
+
+Percentage is `(obtained marks / maximum marks) × 100`, rounded to two decimal places using half-up rounding; it is unavailable when marks are missing. Semester GPA and cumulative CGPA use `Σ(credits × grade points) / Σ(eligible credits)`, rounded to two decimal places using half-up rounding. Only subjects with an official grade other than `U` are successfully cleared and eligible. `U` and missing-grade subjects are excluded from both weighted points and the eligible-credit denominator; missing marks do not imply a grade. When no eligible credits exist, GPA/CGPA is unavailable (`null`). The backend is authoritative for all academic calculations.
+
+Academic create/update/delete requests use the same authenticated HTTP Basic and CSRF conventions as other protected writes. To run backend tests, use `.\mvnw.cmd clean test` from the repository root. To run frontend tests and build, use `npm test -- --maxWorkers=1` and `npm run build` from `frontend`.
+
 ## CSRF for API clients
 
-CSRF protection remains enabled for state-changing requests; only public account registration is excluded. After authenticating with HTTP Basic, fetch a token from `GET /api/csrf`, retain the session cookie, and send the returned token using the returned header name (normally `X-CSRF-TOKEN`) on `POST`, `PUT`, `PATCH`, and `DELETE` requests for records, goals, logs, and tasks. Do not disable CSRF to use the APIs.
+CSRF protection remains enabled for state-changing requests; only public account registration is excluded. After authenticating with HTTP Basic, fetch a token from `GET /api/csrf`, retain the session cookie, and send the returned token using the returned header name (normally `X-CSRF-TOKEN`) on `POST`, `PUT`, `PATCH`, and `DELETE` requests for records, goals, logs, tasks, and academic data. Do not disable CSRF to use the APIs.
 
 For example, with PowerShell, keep a web session and supply the token header:
 
@@ -185,4 +237,4 @@ The application uses JPA to keep a future PostgreSQL migration practical. Produc
 
 ## Scope and limitations
 
-This project implements accounts, personal student records, goals, daily progress logs, a React frontend, and a daily task planner. It does not automatically schedule recurring tasks or mark overdue tasks as completed.
+This project implements accounts, personal student records, goals, daily progress logs, a React frontend, a daily task planner, a calendar, study history, a task reports dashboard, and owner-scoped academic years, semesters, subjects, marks, grades, GPA, and CGPA. It does not automatically schedule recurring tasks, mark overdue tasks as completed, or infer grades from marks.

@@ -3,6 +3,7 @@ export type RecordStatus = "IN_PROGRESS" | "COMPLETED" | "PLANNED";
 export type GoalCategory = "STUDY" | "PROJECT" | "CAREER" | "PERSONAL";
 export type GoalStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 export type DailyTaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED";
+export type OfficialGrade = "O" | "A+" | "A" | "B+" | "B" | "C" | "U";
 export type Weekday =
   | "MONDAY"
   | "TUESDAY"
@@ -18,8 +19,8 @@ export interface StudentRecord {
   description: string | null;
   category: RecordCategory;
   institution: string | null;
-  startDate: string | null;
-  endDate: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
   status: RecordStatus;
   createdAt: string;
   updatedAt: string;
@@ -30,8 +31,8 @@ export interface RecordRequest {
   description: string | null;
   category: RecordCategory;
   institution: string | null;
-  startDate: string | null;
-  endDate: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
   status: RecordStatus;
 }
 
@@ -123,6 +124,90 @@ export interface StudyStreak {
   asOfDate: string;
   currentStreakDays: number;
   longestStreakDays: number;
+}
+
+export interface AcademicYear {
+  id: number;
+  label: string;
+  startDate?: string | null;
+  endDate?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AcademicYearRequest {
+  label: string;
+  startDate: string | null;
+  endDate: string | null;
+}
+
+export interface Semester {
+  id: number;
+  academicYearId: number;
+  label: string;
+  startDate?: string | null;
+  endDate?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SemesterRequest {
+  label: string;
+  startDate: string | null;
+  endDate: string | null;
+}
+
+export interface AcademicSubject {
+  id: number;
+  semesterId: number;
+  name: string;
+  code?: string | null;
+  credits: number;
+  maximumMarks: number;
+  obtainedMarks?: number | null;
+  percentage?: number | null;
+  officialGrade?: OfficialGrade | null;
+  gradePoint?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AcademicSubjectRequest {
+  name: string;
+  code: string | null;
+  credits: number;
+  maximumMarks: number;
+  obtainedMarks: number | null;
+  officialGrade: OfficialGrade | null;
+}
+
+export interface SemesterSummary {
+  semester: Semester;
+  totalSubjects: number;
+  eligibleSubjects: number;
+  eligibleCredits: number;
+  weightedGradePoints: number;
+  gpa?: number | null;
+  subjects: AcademicSubject[];
+}
+
+export interface AcademicYearSummary {
+  academicYear: AcademicYear;
+  totalSubjects: number;
+  eligibleSubjects: number;
+  eligibleCredits: number;
+  weightedGradePoints: number;
+  cgpa?: number | null;
+  semesters: SemesterSummary[];
+}
+
+export interface AcademicSummary {
+  totalSubjects: number;
+  eligibleSubjects: number;
+  eligibleCredits: number;
+  weightedGradePoints: number;
+  cgpa?: number | null;
+  academicYears: AcademicYearSummary[];
 }
 
 export interface RegistrationRequest {

@@ -5,6 +5,8 @@ import java.util.Map;
 
 import com.personalrecords.api.goals.GoalNotFoundException;
 import com.personalrecords.api.goals.ProgressLogNotFoundException;
+import com.personalrecords.api.academic.AcademicConflictException;
+import com.personalrecords.api.academic.AcademicResourceNotFoundException;
 import com.personalrecords.api.records.StudentRecordNotFoundException;
 import com.personalrecords.api.tasks.DailyTaskDateFilterException;
 import com.personalrecords.api.tasks.DailyTaskNotFoundException;
@@ -38,7 +40,11 @@ public class ApiExceptionHandler {
         });
         exception.getBindingResult().getGlobalErrors().forEach(error -> {
             String field = error.getDefaultMessage().startsWith("End date")
-                    ? "dateRange" : "password";
+                    ? "dateRange"
+                    : error.getDefaultMessage().startsWith("Obtained marks")
+                            ? "obtainedMarks"
+                            : error.getDefaultMessage().startsWith("Grade point")
+                                    ? "gradePoint" : "password";
             fieldErrors.putIfAbsent(field, error.getDefaultMessage());
         });
         return response(HttpStatus.BAD_REQUEST, "Validation failed", fieldErrors);
@@ -67,6 +73,16 @@ public class ApiExceptionHandler {
     @ExceptionHandler({GoalNotFoundException.class, ProgressLogNotFoundException.class})
     public ResponseEntity<ApiError> handleGoalResourceNotFound(RuntimeException exception) {
         return response(HttpStatus.NOT_FOUND, "The requested resource was not found", Map.of());
+    }
+
+    @ExceptionHandler(AcademicResourceNotFoundException.class)
+    public ResponseEntity<ApiError> handleAcademicResourceNotFound(AcademicResourceNotFoundException exception) {
+        return response(HttpStatus.NOT_FOUND, "The requested academic resource was not found", Map.of());
+    }
+
+    @ExceptionHandler(AcademicConflictException.class)
+    public ResponseEntity<ApiError> handleAcademicConflict(AcademicConflictException exception) {
+        return response(HttpStatus.CONFLICT, exception.getMessage(), Map.of());
     }
 
     @ExceptionHandler(DailyTaskNotFoundException.class)

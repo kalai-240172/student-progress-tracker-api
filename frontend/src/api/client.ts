@@ -1,5 +1,11 @@
 import type {
   ApiErrorBody,
+  AcademicSubject,
+  AcademicSubjectRequest,
+  AcademicSummary,
+  AcademicYear,
+  AcademicYearRequest,
+  AcademicYearSummary,
   DailyTask,
   DailyTaskRequest,
   DailyTaskStatus,
@@ -14,6 +20,9 @@ import type {
   RegistrationRequest,
   RegistrationResponse,
   StudentRecord,
+  Semester,
+  SemesterRequest,
+  SemesterSummary,
 } from "../types";
 
 const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || "/api").replace(/\/+$/, "");
@@ -145,6 +154,35 @@ export const api = {
     request<StudentRecord>(`/records/${id}`, { method: "PUT", body }),
   deleteRecord: (id: number) =>
     request<void>(`/records/${id}`, { method: "DELETE" }),
+  listAcademicYears: () => request<AcademicYear[]>("/academic-years"),
+  getAcademicYear: (id: number) => request<AcademicYear>(`/academic-years/${id}`),
+  createAcademicYear: (body: AcademicYearRequest) =>
+    request<AcademicYear>("/academic-years", { method: "POST", body }),
+  updateAcademicYear: (id: number, body: AcademicYearRequest) =>
+    request<AcademicYear>(`/academic-years/${id}`, { method: "PUT", body }),
+  deleteAcademicYear: (id: number) =>
+    request<void>(`/academic-years/${id}`, { method: "DELETE" }),
+  listSemesters: (yearId: number) =>
+    request<Semester[]>(`/academic-years/${yearId}/semesters`),
+  createSemester: (yearId: number, body: SemesterRequest) =>
+    request<Semester>(`/academic-years/${yearId}/semesters`, { method: "POST", body }),
+  getSemester: (id: number) => request<Semester>(`/semesters/${id}`),
+  updateSemester: (id: number, body: SemesterRequest) =>
+    request<Semester>(`/semesters/${id}`, { method: "PUT", body }),
+  deleteSemester: (id: number) => request<void>(`/semesters/${id}`, { method: "DELETE" }),
+  listAcademicSubjects: (semesterId: number) =>
+    request<AcademicSubject[]>(`/semesters/${semesterId}/subjects`),
+  createAcademicSubject: (semesterId: number, body: AcademicSubjectRequest) =>
+    request<AcademicSubject>(`/semesters/${semesterId}/subjects`, { method: "POST", body }),
+  getAcademicSubject: (id: number) => request<AcademicSubject>(`/subjects/${id}`),
+  updateAcademicSubject: (id: number, body: AcademicSubjectRequest) =>
+    request<AcademicSubject>(`/subjects/${id}`, { method: "PUT", body }),
+  deleteAcademicSubject: (id: number) =>
+    request<void>(`/subjects/${id}`, { method: "DELETE" }),
+  getSemesterSummary: (id: number) => request<SemesterSummary>(`/semesters/${id}/summary`),
+  getAcademicYearSummary: (id: number) =>
+    request<AcademicYearSummary>(`/academic-years/${id}/summary`),
+  getAcademicSummary: () => request<AcademicSummary>("/academic-summary"),
   listGoals: () => request<Goal[]>("/goals"),
   getGoal: (id: number) => request<Goal>(`/goals/${id}`),
   createGoal: (body: GoalRequest) => request<Goal>("/goals", { method: "POST", body }),

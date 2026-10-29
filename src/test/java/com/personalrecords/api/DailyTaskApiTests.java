@@ -280,6 +280,79 @@ class DailyTaskApiTests {
                 .andExpect(jsonPath("$.actualMinutes").value(25));
     }
 
+    @Test
+    void overdueEndpointReturnsOnlyOwnedPastUncompletedTasks() throws Exception {
+        createTaskAndGetId(OWNER_EMAIL, "Past pending", LocalDate.now().minusDays(2));
+        long completedId = createTaskAndGetId(OWNER_EMAIL, "Past completed", LocalDate.now().minusDays(1));
+        createTaskAndGetId(OWNER_EMAIL, "Due today", LocalDate.now());
+        createTaskAndGetId(OTHER_EMAIL, "Other user's overdue task", LocalDate.now().minusDays(1));
+        mockMvc.perform(patch("/api/tasks/{id}/status", completedId)
+                        .with(httpBasic(OWNER_EMAIL, PASSWORD))
+                        .with(csrf())
+                        .contentType("application/json")
+                        .content("{\"status\":\"COMPLETED\"}"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/tasks/overdue").with(httpBasic(OWNER_EMAIL, PASSWORD)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].title").value("Past pending"));
+    }
+
+    @Test
+    void streaksUseDistinctCompletedDaysExcludeFutureAndAllowYesterdayAsCurrent() throws Exception {
+        LocalDate today = LocalDate.now();
+        long first = createTaskAndGetId(OWNER_EMAIL, "Two days ago", today.minusDays(2));
+        long yesterday = createTaskAndGetId(OWNER_EMAIL, "Yesterday", today.minusDays(1));
+        long future = createTaskAndGetId(OWNER_EMAIL, "Future", today.plusDays(1));
+        long otherUserTask = createTaskAndGetId(OTHER_EMAIL, "Other user's task", today);
+        for (long id : new long[] {first, yesterday, future}) {
+            mockMvc.perform(patch("/api/tasks/{id}/status", id)
+                            .with(httpBasic(OWNER_EMAIL, PASSWORD))
+                            .with(csrf())
+                            .contentType("application/json")
+                            .content("{\"status\":\"COMPLETED\"}"))
+                    .andExpect(status().isOk());
+        }
+        mockMvc.perform(patch("/api/tasks/{id}/status", otherUserTask)
+                        .with(httpBasic(OTHER_EMAIL, PASSWORD))
+                        .with(csrf())
+                        .contentType("application/json")
+                        .content("{\"status\":\"COMPLETED\"}"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/tasks/study-streaks").with(httpBasic(OWNER_EMAIL, PASSWORD)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.asOfDate").value(today.toString()))
+                .andExpect(jsonPath("$.currentStreakDays").value(2))
+                .andExpect(jsonPath("$.longestStreakDays").value(2));
+    }
+
+    @Test
+    void streaksResetAfterAnEmptyDayAndAreZeroForUsersWithoutCompletedTasks() throws Exception {
+        LocalDate today = LocalDate.now();
+        long olderOne = createTaskAndGetId(OWNER_EMAIL, "Older one", today.minusDays(4));
+        long olderTwo = createTaskAndGetId(OWNER_EMAIL, "Older two", today.minusDays(3));
+        long recent = createTaskAndGetId(OWNER_EMAIL, "Recent", today.minusDays(1));
+        for (long id : new long[] {olderOne, olderTwo, recent}) {
+            mockMvc.perform(patch("/api/tasks/{id}/status", id)
+                            .with(httpBasic(OWNER_EMAIL, PASSWORD))
+                            .with(csrf())
+                            .contentType("application/json")
+                            .content("{\"status\":\"COMPLETED\"}"))
+                    .andExpect(status().isOk());
+        }
+
+        mockMvc.perform(get("/api/tasks/study-streaks").with(httpBasic(OWNER_EMAIL, PASSWORD)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currentStreakDays").value(1))
+                .andExpect(jsonPath("$.longestStreakDays").value(2));
+        mockMvc.perform(get("/api/tasks/study-streaks").with(httpBasic(OTHER_EMAIL, PASSWORD)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currentStreakDays").value(0))
+                .andExpect(jsonPath("$.longestStreakDays").value(0));
+    }
+
     private ResultActions createTask(String email, String requestBody) throws Exception {
         return mockMvc.perform(post("/api/tasks")
                 .with(httpBasic(email, PASSWORD))

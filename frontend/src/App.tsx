@@ -15,6 +15,8 @@ const GoalDetailPage = lazy(() => import("./pages/GoalsPage").then((module) => (
 const TasksPage = lazy(() => import("./pages/TasksPage").then((module) => ({ default: module.TasksPage })));
 const CalendarPage = lazy(() => import("./pages/CalendarPage").then((module) => ({ default: module.CalendarPage })));
 const StudyHistoryPage = lazy(() => import("./pages/StudyHistoryPage").then((module) => ({ default: module.StudyHistoryPage })));
+const ReportsPage = lazy(() => import("./pages/ReportsPage").then((module) => ({ default: module.ReportsPage })));
+const AcademicProgressPage = lazy(() => import("./pages/AcademicProgressPage").then((module) => ({ default: module.AcademicProgressPage })));
 
 function RequireAuth() {
   const { isAuthenticated, isChecking } = useAuth();
@@ -53,6 +55,8 @@ export default function App() {
           <Route path="/tasks" element={<TasksPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/history" element={<StudyHistoryPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/academic" element={<AcademicProgressPage />} />
           <Route path="/goals/new" element={<GoalFormPage />} />
           <Route path="/goals/:id" element={<GoalDetailPage />} />
           <Route path="/goals/:id/edit" element={<GoalFormPage />} />
