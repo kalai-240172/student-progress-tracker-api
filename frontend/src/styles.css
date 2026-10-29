@@ -219,6 +219,31 @@ h1, h2, h3, p { margin-top: 0; }
 .goal-card-footer .icon-link { width: 25px; height: 25px; margin-left: auto; }
 .goal-card-muted { background: #fcfcfd; box-shadow: none; }
 .goal-card-muted .progress-fill { background: #aeb3c0; }
+.task-summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+.task-summary-card { display: grid; min-height: 100px; grid-template-columns: 35px 1fr; align-content: center; align-items: center; gap: 4px 10px; border: 1px solid #e9ecf2; border-radius: 12px; background: #fff; padding: 15px; box-shadow: var(--shadow); }
+.task-summary-icon { display: grid; width: 32px; height: 32px; grid-row: span 2; place-items: center; border-radius: 9px; color: #5b5fe9; background: #f0f0ff; }
+.task-summary-card > span:nth-child(2) { color: #9098a9; font-size: 10px; }
+.task-summary-card strong { color: #293248; font-size: 18px; font-weight: 700; }
+.task-editor, .task-list-panel { margin-bottom: 16px; }
+.task-form { padding-top: 3px; }
+.task-list-heading { align-items: center; }
+.task-filters { display: flex; align-items: center; gap: 8px; }
+.task-filters .field { min-width: 125px; }
+.task-filters input, .task-filters select, .daily-task-actions select, .daily-task-actions input { min-height: 36px; border: 1px solid #dfe3ec; border-radius: 8px; padding: 7px 9px; color: #344057; background: #fff; font-size: 11px; }
+.daily-task-list { display: grid; gap: 10px; }
+.daily-task-card { display: flex; align-items: center; justify-content: space-between; gap: 18px; border: 1px solid #edf0f5; border-radius: 11px; padding: 15px; }
+.daily-task-complete { background: #fbfdfc; }
+.daily-task-main { min-width: 0; }
+.daily-task-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+.daily-task-title-row h3 { margin: 0; color: #293248; font-size: 13px; font-weight: 680; }
+.daily-task-main > p { margin: 5px 0 0; color: #8d95a6; font-size: 10px; }
+.daily-task-main .daily-task-description { max-width: 550px; overflow-wrap: anywhere; }
+.daily-task-time { display: flex; flex-wrap: wrap; gap: 13px; margin-top: 9px; color: #777f92; font-size: 10px; }
+.daily-task-actions { display: flex; align-items: flex-end; justify-content: flex-end; gap: 7px; flex-wrap: wrap; }
+.daily-task-actions .field { min-width: 105px; gap: 4px; font-size: 9px; }
+.daily-task-actions .field input, .daily-task-actions .field select { width: 100%; }
+.daily-task-actions .button { min-height: 35px; padding: 0 9px; font-size: 10px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
 .goal-detail-status { display: flex; align-items: center; gap: 12px; margin: -12px 0 18px; }
 .goal-detail-status > span:last-child { display: inline-flex; align-items: center; gap: 5px; color: #929aab; font-size: 10px; }
 .summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 15px; }
@@ -289,6 +314,8 @@ h1, h2, h3, p { margin-top: 0; }
   .sidebar { width: 220px; }
   .main-column { margin-left: 220px; }
   .record-grid, .goal-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .daily-task-card { align-items: flex-start; flex-direction: column; }
+  .daily-task-actions { justify-content: flex-start; }
   .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 850px) {
@@ -336,6 +363,10 @@ h1, h2, h3, p { margin-top: 0; }
   .dashboard-grid { grid-template-columns: 1fr; gap: 11px; }
   .panel { padding: 16px; }
   .record-grid, .goal-card-grid { grid-template-columns: 1fr; gap: 11px; }
+  .task-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .daily-task-actions { width: 100%; }
+  .task-list-heading { align-items: flex-start; flex-direction: column; }
+  .task-filters { width: 100%; flex-wrap: wrap; }
   .record-card, .goal-card { padding: 16px; }
   .detail-grid { grid-template-columns: 1fr; }
   .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }

@@ -1,6 +1,6 @@
 # Studyflow frontend
 
-Responsive React + TypeScript frontend for the existing Personal Student Record & Progress Tracking API. The frontend consumes the real Spring Boot registration, records, goals, progress-log, summary, and CSRF endpoints; it does not provide mock data or an API.
+Responsive React + TypeScript frontend for the existing Personal Student Record & Progress Tracking API. The frontend consumes the real Spring Boot registration, records, goals, progress-log, task-planner, summary, and CSRF endpoints; it does not provide mock data or an API.
 
 ## Prerequisites
 
@@ -75,6 +75,7 @@ Write requests first fetch `GET /api/csrf`, then send the backend-provided heade
 ## Features and API routes
 
 - Overview: `GET /api/goals`, `GET /api/goals/{id}/progress`, and `GET /api/goals/{goalId}/logs` power the goal totals, actual status counts, weekly/monthly time, and recent sessions. Statistics are never fabricated.
+- Daily tasks: `/tasks` calls `GET /api/tasks`, `GET /api/tasks/today-summary`, and the task create, update, status, actual-duration, and delete endpoints. It supports today, all tasks, and a selected date.
 - Student records: `GET/POST /api/records`, `GET/PUT/DELETE /api/records/{id}`.
 - Goals: `GET/POST /api/goals`, `GET/PUT/DELETE /api/goals/{id}`.
 - Goal detail: `GET /api/goals/{goalId}/progress`, `GET/POST /api/goals/{goalId}/logs`, and `GET/PUT/DELETE /api/goals/{goalId}/logs/{logId}`.
@@ -88,5 +89,5 @@ Dashboard activity uses the backend summary's ISO Monday-to-Monday week and cale
 - If the backend runs on a different port, update `VITE_BACKEND_URL` in `.env.local` and restart Vite.
 - A `401` means credentials were rejected or cleared; sign in again.
 - A `403` on a write can indicate an expired CSRF token; the client refreshes once. If it persists, reload and sign in again.
-- A `404` for another user's record, goal, or log is intentional ownership protection.
+- A `404` for another user's record, goal, log, or task is intentional ownership protection.
 - Tests and builds run locally; frontend test requests are mocked and do not require a live API.

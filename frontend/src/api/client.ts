@@ -1,5 +1,9 @@
 import type {
   ApiErrorBody,
+  DailyTask,
+  DailyTaskRequest,
+  DailyTaskStatus,
+  DailyTaskSummary,
   Goal,
   GoalRequest,
   ProgressLog,
@@ -156,4 +160,26 @@ export const api = {
     request<ProgressLog>(`/goals/${goalId}/logs/${logId}`, { method: "PUT", body }),
   deleteLog: (goalId: number, logId: number) =>
     request<void>(`/goals/${goalId}/logs/${logId}`, { method: "DELETE" }),
+  listTasks: (filters: { date?: string; startDate?: string; endDate?: string } = {}) => {
+    const query = new URLSearchParams();
+    if (filters.date) query.set("date", filters.date);
+    if (filters.startDate) query.set("startDate", filters.startDate);
+    if (filters.endDate) query.set("endDate", filters.endDate);
+    const suffix = query.size > 0 ? `?${query.toString()}` : "";
+    return request<DailyTask[]>(`/tasks${suffix}`);
+  },
+  getTodayTaskSummary: () => request<DailyTaskSummary>("/tasks/today-summary"),
+  getTask: (id: number) => request<DailyTask>(`/tasks/${id}`),
+  createTask: (body: DailyTaskRequest) =>
+    request<DailyTask>("/tasks", { method: "POST", body }),
+  updateTask: (id: number, body: DailyTaskRequest) =>
+    request<DailyTask>(`/tasks/${id}`, { method: "PUT", body }),
+  updateTaskStatus: (id: number, status: DailyTaskStatus) =>
+    request<DailyTask>(`/tasks/${id}/status`, { method: "PATCH", body: { status } }),
+  updateTaskActualDuration: (id: number, actualDurationMinutes: number) =>
+    request<DailyTask>(`/tasks/${id}/actual-duration`, {
+      method: "PATCH",
+      body: { actualDurationMinutes },
+    }),
+  deleteTask: (id: number) => request<void>(`/tasks/${id}`, { method: "DELETE" }),
 };

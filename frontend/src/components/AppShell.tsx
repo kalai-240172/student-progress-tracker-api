@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   ArrowUpRight,
   BookOpenCheck,
+  CalendarCheck2,
   Flag,
   LayoutDashboard,
   LogOut,
@@ -15,6 +16,7 @@ import { useAuth } from "../auth/AuthContext";
 const navigation = [
   { to: "/", label: "Overview", icon: LayoutDashboard, end: true },
   { to: "/goals", label: "Goals", icon: Flag },
+  { to: "/tasks", label: "Daily tasks", icon: CalendarCheck2 },
   { to: "/records", label: "Student records", icon: NotebookTabs },
 ];
 

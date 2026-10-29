@@ -6,6 +6,8 @@ import java.util.Map;
 import com.personalrecords.api.goals.GoalNotFoundException;
 import com.personalrecords.api.goals.ProgressLogNotFoundException;
 import com.personalrecords.api.records.StudentRecordNotFoundException;
+import com.personalrecords.api.tasks.DailyTaskDateFilterException;
+import com.personalrecords.api.tasks.DailyTaskNotFoundException;
 import com.personalrecords.api.user.DuplicateEmailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -64,6 +67,27 @@ public class ApiExceptionHandler {
     @ExceptionHandler({GoalNotFoundException.class, ProgressLogNotFoundException.class})
     public ResponseEntity<ApiError> handleGoalResourceNotFound(RuntimeException exception) {
         return response(HttpStatus.NOT_FOUND, "The requested resource was not found", Map.of());
+    }
+
+    @ExceptionHandler(DailyTaskNotFoundException.class)
+    public ResponseEntity<ApiError> handleDailyTaskNotFound(DailyTaskNotFoundException exception) {
+        return response(HttpStatus.NOT_FOUND, "The requested task was not found", Map.of());
+    }
+
+    @ExceptionHandler(DailyTaskDateFilterException.class)
+    public ResponseEntity<ApiError> handleDailyTaskDateFilter(DailyTaskDateFilterException exception) {
+        return response(
+                HttpStatus.BAD_REQUEST,
+                "Validation failed",
+                Map.of(exception.getField(), exception.getMessage()));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiError> handleInvalidRequestParameter(MethodArgumentTypeMismatchException exception) {
+        return response(
+                HttpStatus.BAD_REQUEST,
+                "Validation failed",
+                Map.of(exception.getName(), "Invalid value"));
     }
 
     @ExceptionHandler(Exception.class)

@@ -127,9 +127,26 @@ Activity dates may be in the past; the API does not impose an arbitrary historic
 
 The progress summary includes the target duration, total and remaining minutes, percentage, log count, current-week and current-month minutes, and most recent activity date. Total minutes are summed from saved logs. Remaining minutes are `max(target - total, 0)`. Percentage is `min(total / target * 100, 100)`, rounded to two decimal places using half-up rounding; it measures time recorded against the duration target, not learning quality. The current week uses the ISO Monday-to-Monday interval (Monday included, next Monday excluded); the current month uses the first day of this month through the first day of next month (start included, end excluded). Both boundaries are calculated from the server's local date.
 
+## Daily task planner
+
+Daily tasks let each authenticated user plan study work by title, subject, date, and estimated minutes, then update task status and record actual time independently. New tasks start as `PENDING`; completing a task does not fill in actual duration. Editing a task's planned date reschedules the same task without replacing its ID. Past-dated tasks remain in their selected status until explicitly changed.
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `POST` | `/api/tasks` | Create a task; returns HTTP 201 |
+| `GET` | `/api/tasks` | List tasks; optionally filter with `date=YYYY-MM-DD` or both `startDate` and `endDate` |
+| `GET` | `/api/tasks/{id}` | Get an owned task |
+| `PUT` | `/api/tasks/{id}` | Update task details and planned date |
+| `PATCH` | `/api/tasks/{id}/status` | Change status using `{"status":"IN_PROGRESS"}` |
+| `PATCH` | `/api/tasks/{id}/actual-duration` | Record non-negative minutes using `{"actualDurationMinutes":45}` |
+| `DELETE` | `/api/tasks/{id}` | Delete an owned task; returns HTTP 204 |
+| `GET` | `/api/tasks/today-summary` | Get today's task counts and planned/recorded minutes |
+
+Date range endpoints are inclusive and require both dates, with `startDate` on or before `endDate`. The `date` filter cannot be combined with a range. Today is based on the server's local date. Summary actual minutes sum only values recorded for today's tasks; missing values are not inferred. All task operations use the authenticated user and inaccessible task IDs return HTTP 404. The authenticated frontend includes the Daily tasks page at `/tasks`.
+
 ## CSRF for API clients
 
-CSRF protection remains enabled for state-changing requests; only public account registration is excluded. After authenticating with HTTP Basic, fetch a token from `GET /api/csrf`, retain the session cookie, and send the returned token using the returned header name (normally `X-CSRF-TOKEN`) on `POST`, `PUT`, and `DELETE` requests for records, goals, and logs. Do not disable CSRF to use the APIs.
+CSRF protection remains enabled for state-changing requests; only public account registration is excluded. After authenticating with HTTP Basic, fetch a token from `GET /api/csrf`, retain the session cookie, and send the returned token using the returned header name (normally `X-CSRF-TOKEN`) on `POST`, `PUT`, `PATCH`, and `DELETE` requests for records, goals, logs, and tasks. Do not disable CSRF to use the APIs.
 
 For example, with PowerShell, keep a web session and supply the token header:
 
@@ -150,7 +167,7 @@ $body = @{
 Invoke-RestMethod http://localhost:8080/api/records -Method Post -WebSession $session -Headers $headers -ContentType "application/json" -Body $body
 ```
 
-Use the same session and CSRF header for subsequent record, goal, and log changes. The example uses a placeholder password; register an account and substitute your own credentials.
+Use the same session and CSRF header for subsequent record, goal, log, and task changes. The example uses a placeholder password; register an account and substitute your own credentials.
 
 ## Local database
 
@@ -168,4 +185,4 @@ The application uses JPA to keep a future PostgreSQL migration practical. Produc
 
 ## Scope and limitations
 
-This checkpoint implements accounts, personal student records, goals, and daily progress logs. It does not implement a frontend, schedules, or other progress-tracking workflows.
+This project implements accounts, personal student records, goals, daily progress logs, a React frontend, and a daily task planner. It does not automatically schedule recurring tasks or mark overdue tasks as completed.

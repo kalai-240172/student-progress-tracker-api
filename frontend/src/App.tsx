@@ -12,6 +12,7 @@ const RecordDetailPage = lazy(() => import("./pages/RecordsPage").then((module) 
 const GoalsPage = lazy(() => import("./pages/GoalsPage").then((module) => ({ default: module.GoalsPage })));
 const GoalFormPage = lazy(() => import("./pages/GoalsPage").then((module) => ({ default: module.GoalFormPage })));
 const GoalDetailPage = lazy(() => import("./pages/GoalsPage").then((module) => ({ default: module.GoalDetailPage })));
+const TasksPage = lazy(() => import("./pages/TasksPage").then((module) => ({ default: module.TasksPage })));
 
 function RequireAuth() {
   const { isAuthenticated, isChecking } = useAuth();
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="/records/:id" element={<RecordDetailPage />} />
           <Route path="/records/:id/edit" element={<RecordFormPage />} />
           <Route path="/goals" element={<GoalsPage />} />
+          <Route path="/tasks" element={<TasksPage />} />
           <Route path="/goals/new" element={<GoalFormPage />} />
           <Route path="/goals/:id" element={<GoalDetailPage />} />
           <Route path="/goals/:id/edit" element={<GoalFormPage />} />

@@ -107,4 +107,41 @@ describe("API client", () => {
     expect(fetchMock.mock.calls[0][0]).toBeInstanceOf(URL);
     expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe("POST");
   });
+
+  it("uses date filters for tasks and sends CSRF-protected task updates", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify([]), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ headerName: "X-CSRF-TOKEN", token: "task-csrf" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ id: 8, status: "COMPLETED" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+    setCredentials("student@example.com", "StrongPassword123!");
+
+    await api.listTasks({ startDate: "2026-10-28", endDate: "2026-10-29" });
+    await api.updateTaskStatus(8, "COMPLETED");
+
+    expect(String(fetchMock.mock.calls[0][0])).toContain(
+      "/api/tasks?startDate=2026-10-28&endDate=2026-10-29",
+    );
+    const requestHeaders = new Headers((fetchMock.mock.calls[2][1] as RequestInit).headers);
+    expect(requestHeaders.get("X-CSRF-TOKEN")).toBe("task-csrf");
+    expect(JSON.parse((fetchMock.mock.calls[2][1] as RequestInit).body as string)).toEqual({
+      status: "COMPLETED",
+    });
+  });
 });

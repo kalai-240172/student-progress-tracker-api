@@ -2,6 +2,7 @@ export type RecordCategory = "ACADEMIC" | "CERTIFICATE" | "PROJECT" | "ACHIEVEME
 export type RecordStatus = "IN_PROGRESS" | "COMPLETED" | "PLANNED";
 export type GoalCategory = "STUDY" | "PROJECT" | "CAREER" | "PERSONAL";
 export type GoalStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+export type DailyTaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED";
 export type Weekday =
   | "MONDAY"
   | "TUESDAY"
@@ -86,6 +87,36 @@ export interface ProgressSummary {
   currentWeekMinutes: number;
   currentMonthMinutes: number;
   mostRecentActivityDate: string | null;
+}
+
+export interface DailyTask {
+  id: number;
+  title: string;
+  description: string | null;
+  subject: string;
+  plannedDate: string;
+  estimatedDurationMinutes: number;
+  actualDurationMinutes: number | null;
+  status: DailyTaskStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DailyTaskRequest {
+  title: string;
+  description: string | null;
+  subject: string;
+  plannedDate: string;
+  estimatedDurationMinutes: number;
+}
+
+export interface DailyTaskSummary {
+  date: string;
+  taskCount: number;
+  completedCount: number;
+  pendingOrInProgressCount: number;
+  plannedMinutes: number;
+  actualMinutes: number;
 }
 
 export interface RegistrationRequest {
