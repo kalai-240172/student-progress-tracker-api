@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Map;
 
+import com.personalrecords.api.records.StudentRecordRepository;
 import com.personalrecords.api.user.User;
 import com.personalrecords.api.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +36,9 @@ class PersonalRecordApiApplicationTests {
     private UserRepository userRepository;
 
     @Autowired
+    private StudentRecordRepository recordRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -45,6 +49,7 @@ class PersonalRecordApiApplicationTests {
 
     @BeforeEach
     void clearUsers() {
+        recordRepository.deleteAll();
         userRepository.deleteAll();
     }
 
