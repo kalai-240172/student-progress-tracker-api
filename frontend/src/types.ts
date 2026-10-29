@@ -119,6 +119,12 @@ export interface DailyTaskSummary {
   actualMinutes: number;
 }
 
+export interface StudyStreak {
+  asOfDate: string;
+  currentStreakDays: number;
+  longestStreakDays: number;
+}
+
 export interface RegistrationRequest {
   name: string;
   email: string;

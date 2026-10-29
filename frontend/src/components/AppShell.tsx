@@ -3,6 +3,8 @@ import {
   ArrowUpRight,
   BookOpenCheck,
   CalendarCheck2,
+  CalendarDays,
+  History,
   Flag,
   LayoutDashboard,
   LogOut,
@@ -17,6 +19,8 @@ const navigation = [
   { to: "/", label: "Overview", icon: LayoutDashboard, end: true },
   { to: "/goals", label: "Goals", icon: Flag },
   { to: "/tasks", label: "Daily tasks", icon: CalendarCheck2 },
+  { to: "/calendar", label: "Calendar", icon: CalendarDays },
+  { to: "/history", label: "Study history", icon: History },
   { to: "/records", label: "Student records", icon: NotebookTabs },
 ];
 

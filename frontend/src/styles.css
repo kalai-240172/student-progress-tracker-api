@@ -244,6 +244,45 @@ h1, h2, h3, p { margin-top: 0; }
 .daily-task-actions .field input, .daily-task-actions .field select { width: 100%; }
 .daily-task-actions .button { min-height: 35px; padding: 0 9px; font-size: 10px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
+.calendar-panel, .history-filter-panel, .history-chart-panel, .history-days-panel, .overdue-panel { margin-bottom: 16px; }
+.calendar-toolbar, .calendar-period-control, .calendar-view-switch { display: flex; align-items: center; gap: 8px; }
+.calendar-toolbar { justify-content: space-between; margin-bottom: 18px; }
+.calendar-period-control h2 { min-width: 175px; margin: 0; color: #30394f; text-align: center; font-size: 15px; font-weight: 680; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid #e9ecf2; border-left: 1px solid #e9ecf2; }
+.calendar-weekday { padding: 10px 6px; border-right: 1px solid #e9ecf2; border-bottom: 1px solid #e9ecf2; color: #858da0; text-align: center; font-size: 10px; font-weight: 650; }
+.calendar-day { display: flex; min-width: 0; min-height: 78px; flex-direction: column; align-items: flex-start; gap: 9px; border: 0; border-right: 1px solid #e9ecf2; border-bottom: 1px solid #e9ecf2; padding: 9px; color: #3e485f; background: #fff; text-align: left; }
+.calendar-day:hover { background: #f7f7ff; }
+.calendar-day-muted { color: #aab0bc; background: #fafbfc; }
+.calendar-day-selected { box-shadow: inset 0 0 0 2px #777be7; background: #f6f6ff; }
+.calendar-day-today .calendar-day-number { display: grid; width: 24px; height: 24px; place-items: center; border-radius: 50%; color: #fff; background: #5b5fe9; }
+.calendar-day-count { display: inline-flex; align-items: center; gap: 4px; color: #7076d4; font-size: 9px; font-weight: 620; }
+.calendar-selection { margin-top: 21px; }
+.calendar-task-list { display: grid; gap: 8px; }
+.calendar-task-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid #edf0f5; border-radius: 9px; padding: 11px 13px; }
+.calendar-task-row h3 { margin: 0; color: #344057; font-size: 12px; }
+.calendar-task-row p { margin: 4px 0 0; color: #8d95a6; font-size: 10px; }
+.history-filter-form { display: flex; align-items: flex-end; gap: 12px; }
+.history-filter-form .field { min-width: 160px; }
+.history-range-note { margin: 12px 0 0; color: #9299a8; font-size: 10px; }
+.history-metrics, .history-streaks { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 11px; margin-bottom: 13px; }
+.history-streaks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.history-metric-card { display: grid; min-height: 90px; grid-template-columns: 32px 1fr; align-content: center; align-items: center; gap: 4px 9px; border: 1px solid #e9ecf2; border-radius: 11px; background: #fff; padding: 13px; box-shadow: var(--shadow); }
+.history-metric-icon { display: grid; width: 30px; height: 30px; grid-row: span 2; place-items: center; border-radius: 9px; color: #5b5fe9; background: #f0f0ff; }
+.history-metric-card > span:nth-child(2) { color: #9098a9; font-size: 10px; }
+.history-metric-card strong { color: #293248; font-size: 17px; }
+.history-chart { width: 100%; height: 270px; }
+.history-day-list, .overdue-list { display: grid; gap: 10px; }
+.history-day { border: 1px solid #edf0f5; border-radius: 10px; padding: 12px 14px; }
+.history-day-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 9px; }
+.history-day-heading h3 { margin: 0; color: #344057; font-size: 12px; }
+.history-day-heading p, .history-day-heading > div:last-child { display: flex; gap: 12px; margin: 4px 0 0; color: #8d95a6; font-size: 10px; }
+.history-task-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-top: 1px solid #f0f1f5; padding: 8px 0; color: #566076; font-size: 11px; }
+.history-task-row small { margin-left: 6px; color: #969dae; font-size: 10px; }
+.overdue-row { display: flex; align-items: flex-end; gap: 10px; border: 1px solid #edf0f5; border-radius: 10px; padding: 12px; }
+.overdue-task-info { display: grid; flex: 1; gap: 5px; align-self: center; color: #39445a; font-size: 11px; }
+.overdue-task-info span { color: #9098a9; font-size: 10px; }
+.overdue-row .field { min-width: 155px; font-size: 10px; }
+.overdue-row .field input { min-height: 36px; border: 1px solid #dfe3ec; border-radius: 8px; padding: 7px 9px; font-size: 11px; }
 .goal-detail-status { display: flex; align-items: center; gap: 12px; margin: -12px 0 18px; }
 .goal-detail-status > span:last-child { display: inline-flex; align-items: center; gap: 5px; color: #929aab; font-size: 10px; }
 .summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 15px; }
@@ -316,6 +355,9 @@ h1, h2, h3, p { margin-top: 0; }
   .record-grid, .goal-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .daily-task-card { align-items: flex-start; flex-direction: column; }
   .daily-task-actions { justify-content: flex-start; }
+  .history-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .overdue-row { align-items: stretch; flex-wrap: wrap; }
+  .overdue-task-info { flex-basis: 100%; }
   .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 850px) {
@@ -364,6 +406,23 @@ h1, h2, h3, p { margin-top: 0; }
   .panel { padding: 16px; }
   .record-grid, .goal-card-grid { grid-template-columns: 1fr; gap: 11px; }
   .task-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .calendar-panel { padding: 12px; }
+  .calendar-toolbar { align-items: flex-start; flex-direction: column; }
+  .calendar-period-control { width: 100%; justify-content: space-between; gap: 4px; }
+  .calendar-period-control h2 { min-width: 0; font-size: 12px; }
+  .calendar-period-control .button { min-height: 34px; padding: 0 8px; font-size: 10px; }
+  .calendar-day { min-height: 58px; gap: 5px; padding: 5px; }
+  .calendar-day-number { font-size: 10px; }
+  .calendar-day-count { gap: 2px; font-size: 8px; }
+  .calendar-weekday { padding: 8px 2px; font-size: 8px; }
+  .calendar-task-row { align-items: flex-start; }
+  .history-filter-form { align-items: stretch; flex-direction: column; }
+  .history-filter-form .field { min-width: 0; }
+  .history-streaks { grid-template-columns: 1fr 1fr; }
+  .history-chart { height: 230px; }
+  .history-day-heading { align-items: flex-start; flex-direction: column; }
+  .history-day-heading > div:last-child { flex-wrap: wrap; }
+  .overdue-row .field { min-width: 0; flex: 1; }
   .daily-task-actions { width: 100%; }
   .task-list-heading { align-items: flex-start; flex-direction: column; }
   .task-filters { width: 100%; flex-wrap: wrap; }

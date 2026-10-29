@@ -4,6 +4,7 @@ import type {
   DailyTaskRequest,
   DailyTaskStatus,
   DailyTaskSummary,
+  StudyStreak,
   Goal,
   GoalRequest,
   ProgressLog,
@@ -169,6 +170,8 @@ export const api = {
     return request<DailyTask[]>(`/tasks${suffix}`);
   },
   getTodayTaskSummary: () => request<DailyTaskSummary>("/tasks/today-summary"),
+  getOverdueTasks: () => request<DailyTask[]>("/tasks/overdue"),
+  getStudyStreaks: () => request<StudyStreak>("/tasks/study-streaks"),
   getTask: (id: number) => request<DailyTask>(`/tasks/${id}`),
   createTask: (body: DailyTaskRequest) =>
     request<DailyTask>("/tasks", { method: "POST", body }),
