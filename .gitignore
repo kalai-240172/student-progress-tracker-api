@@ -31,3 +31,13 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Local database files and developer-only configuration
+*.mv.db
+*.trace.db
+*.lock.db
+*.temp.db
+.personal-records/
+.env
+.env.*
+application-local.properties
