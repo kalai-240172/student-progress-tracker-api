@@ -12,6 +12,7 @@ import {
   NotebookTabs,
   ChartNoAxesCombined,
   GraduationCap,
+  Download,
   X,
 } from "lucide-react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
@@ -25,6 +26,7 @@ const navigation = [
   { to: "/history", label: "Study history", icon: History },
   { to: "/reports", label: "Reports", icon: ChartNoAxesCombined },
   { to: "/academic", label: "Academic progress", icon: GraduationCap },
+  { to: "/exports", label: "Export data", icon: Download },
   { to: "/records", label: "Student records", icon: NotebookTabs },
 ];
 

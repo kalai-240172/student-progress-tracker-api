@@ -196,6 +196,20 @@ Percentage is `(obtained marks / maximum marks) × 100`, rounded to two decimal 
 
 Academic create/update/delete requests use the same authenticated HTTP Basic and CSRF conventions as other protected writes. To run backend tests, use `.\mvnw.cmd clean test` from the repository root. To run frontend tests and build, use `npm test -- --maxWorkers=1` and `npm run build` from `frontend`.
 
+## CSV data exports
+
+The authenticated frontend provides an **Export data** page at `/exports`. It downloads the current user's study history, daily tasks, or academic results as UTF-8 CSV files. The endpoints require HTTP Basic authentication and use the authenticated principal for ownership; client-supplied user IDs are not accepted. The endpoints are read-only `GET` requests and follow the existing CSRF policy.
+
+| Method | Endpoint | Query parameters | Export |
+| --- | --- | --- | --- |
+| `GET` | `/api/exports/study-history` | Optional `startDate=YYYY-MM-DD` and `endDate=YYYY-MM-DD` | Saved progress logs with goal, activity date, time spent, summary, notes, and timestamps |
+| `GET` | `/api/exports/tasks` | Optional `startDate=YYYY-MM-DD` and `endDate=YYYY-MM-DD` | Task title, description, subject, planned date, status, estimated and recorded actual minutes, and timestamps |
+| `GET` | `/api/exports/academic` | Optional `academicYearId` and/or `semesterId` | Existing academic year, semester, subject, marks, percentage, official grade, grade point, and available GPA/CGPA summaries |
+
+Study-history dates filter the log activity date; task dates filter the planned date. Supply both dates or neither; both endpoints include the start and end dates using the server's `LocalDate` calendar. Academic identifiers are checked against the authenticated user's ownership, and a semester must belong to a supplied academic year. Invalid ranges return HTTP 400; inaccessible academic identifiers return HTTP 404. Empty results still return a valid CSV with its header row. Missing values are emitted as empty fields rather than zero or inferred data. Academic percentages and summaries reuse the existing authoritative academic calculations.
+
+Files include a UTF-8 byte-order mark for spreadsheet compatibility. Every field is CSV-quoted, embedded quotes are doubled, and commas and line breaks remain within their quoted field. Untrusted text beginning with `=`, `+`, `-`, or `@` (including after leading whitespace/control characters) is prefixed with an apostrophe to reduce spreadsheet formula execution risk. Numeric values are exported as numeric text and are not rewritten; this preserves legitimate negative numbers. The export page explains the encoding and safety behavior.
+
 ## CSRF for API clients
 
 CSRF protection remains enabled for state-changing requests; only public account registration is excluded. After authenticating with HTTP Basic, fetch a token from `GET /api/csrf`, retain the session cookie, and send the returned token using the returned header name (normally `X-CSRF-TOKEN`) on `POST`, `PUT`, `PATCH`, and `DELETE` requests for records, goals, logs, tasks, and academic data. Do not disable CSRF to use the APIs.
@@ -229,11 +243,85 @@ The default H2 database is file-based and stored outside the repository at:
 %USERPROFILE%\.personal-records\personalrecords.mv.db
 ```
 
-The application creates the `.personal-records` directory as needed. H2's web console is disabled. Override settings with `PERSONAL_RECORDS_DB_URL`, `PERSONAL_RECORDS_DB_USERNAME`, and `PERSONAL_RECORDS_DB_PASSWORD`; do not commit local credentials or database files. Tests use a separate in-memory database.
-
-Stop the application before making a backup. Copy `personalrecords.mv.db` to a secure backup location; restore by stopping the application and copying the backup back to the same database location. Keep backups private and periodically verify that they can be restored. File-based H2 is for local development only and is not suitable for public production deployment.
+The application creates the `.personal-records` directory as needed. H2's web console is disabled. Override settings with `PERSONAL_RECORDS_DB_URL`, `PERSONAL_RECORDS_DB_USERNAME`, and `PERSONAL_RECORDS_DB_PASSWORD`; do not commit local credentials or database files. Tests use a separate in-memory database. Do not copy the live H2 database file as a backup; use the supported offline SQL backup and guarded recovery procedure below.
 
 The application uses JPA to keep a future PostgreSQL migration practical. Production use will require a managed database, appropriate schema migrations, secret management, transport security, and a production-ready authentication design.
+
+## Safe database backup and recovery
+
+The application uses embedded H2 `2.4.240` in file mode by default: `%USERPROFILE%\.personal-records\personalrecords.mv.db`. Tests use `jdbc:h2:mem:personalrecords-test` and are never a backup source. No backup endpoint is exposed. The operator helper uses the project's resolved H2 runtime and H2's supported `SCRIPT`/`RunScript` tools to create and recover a UTF-8 SQL script, not a byte-for-byte copy of a live database. It only accepts `jdbc:h2:file:` URLs and refuses memory/server URLs or a missing source database file. Stop the application before creating a backup; the script deliberately opens the embedded database offline and does not copy active database files.
+
+Backups are stored by default in `%USERPROFILE%\.personal-records-backups`, separate from the active database directory and outside the repository. Set `PERSONAL_RECORDS_BACKUP_DIR` or pass `-BackupDirectory` to choose another location; the helper refuses a destination inside this Git repository or active database directory. It estimates required free space, writes to a unique temporary file, signs its exact contents with HMAC-SHA-256, then publishes a timestamped UTC `.sql` file and matching `.sql.hmac` signature without replacing existing files. Validation requires the H2 script header and a matching signature. The HMAC key is a Base64-encoded secret of at least 32 bytes; generate it once from a cryptographically secure source and keep it in a trusted password/secret manager separate from the backups. Do not lose or rotate the key without retaining the prior key for backups signed with it. The helper never prints the key.
+
+Before each backup, validation, or recovery session, load the same key from your trusted secret store into the current PowerShell process. This prompt does not echo the key:
+
+```powershell
+$secureKey = Read-Host "Base64 backup key from your secret manager" -AsSecureString
+$keyPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureKey)
+try {
+    $env:PERSONAL_RECORDS_BACKUP_HMAC_KEY =
+        [Runtime.InteropServices.Marshal]::PtrToStringBSTR($keyPointer)
+} finally {
+    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($keyPointer)
+    $secureKey.Dispose()
+}
+```
+
+The value is present in the current PowerShell process environment so the helper can pass it to its child process; clear it with `Remove-Item Env:\PERSONAL_RECORDS_BACKUP_HMAC_KEY` when finished. Do not put the key literal in scripts, command history, the database URL, or source control. Keep the key separately backed up; losing it makes helper validation/recovery of its signed backups impossible.
+
+From the repository root, stop the running application first (for `spring-boot:run`, press Ctrl+C in its console), then run:
+
+```powershell
+.\scripts\database-backup.ps1 -Action Backup
+
+$backup = Get-ChildItem "$HOME\.personal-records-backups\personalrecords-backup-*.sql" |
+    Sort-Object LastWriteTimeUtc -Descending |
+    Select-Object -First 1
+if ($null -eq $backup) { throw "No backup file was created." }
+.\scripts\database-backup.ps1 -Action Validate -BackupPath $backup.FullName
+```
+
+For a custom persistent database, set `PERSONAL_RECORDS_DB_URL` and, when needed, `PERSONAL_RECORDS_DB_USERNAME` / `PERSONAL_RECORDS_DB_PASSWORD` in the same PowerShell environment before running the helper. The default credentials are `sa` with an empty password, matching the default development configuration. Do not put credentials in command-line arguments, URLs, scripts, or source control. The helper does not print passwords or the HMAC key. Keep the SQL script and its signature private: the script contains the application's stored user data (including password hashes). Store them in a user-only, access-controlled directory and encrypted storage; define and regularly review a retention policy. The default directory is outside Git, and narrow ignore rules cover conventional repository-local backup/restore artifact names.
+
+### Recovery without overwriting the current database
+
+Recovery is deliberately split into validation and a later operator-controlled switch. It never writes to the configured source database, never restores at startup, and refuses an existing temporary database. **Treat `.sql` backups as executable input.** Restore only a file whose `.sql.hmac` signature validates with the separately protected key. This detects file replacement or modification when the key remains secret; it does not make an already-compromised source database trustworthy. Never restore an untrusted or unsigned SQL file. Keep the application stopped while running the restore helper. First select and validate the intended backup:
+
+```powershell
+.\scripts\database-backup.ps1 -Action Backup
+
+$safetyBackup = Get-ChildItem "$HOME\.personal-records-backups\personalrecords-backup-*.sql" |
+    Sort-Object LastWriteTimeUtc -Descending |
+    Select-Object -First 1
+if ($null -eq $safetyBackup) { throw "The pre-recovery safety backup was not created." }
+.\scripts\database-backup.ps1 -Action Validate -BackupPath $safetyBackup.FullName
+
+$backup = Get-Item "C:\path\to\personalrecords-backup-YYYYMMDDTHHMMSS.mmmZ-random.sql"
+.\scripts\database-backup.ps1 -Action Validate -BackupPath $backup.FullName
+```
+
+Restore into a new, empty file database outside the active database directory and repository. The database basename must include `restore` or `recovery`; do not point it at `personalrecords-test` or any existing database:
+
+```powershell
+$restoreBase = Join-Path $HOME ".personal-records-recovery\personalrecords-restore-20261030"
+$restoreUrl = "jdbc:h2:file:$restoreBase;DB_CLOSE_ON_EXIT=FALSE"
+.\scripts\database-backup.ps1 -Action RestoreToTemporary `
+    -BackupPath $backup.FullName `
+    -TemporaryDatabaseUrl $restoreUrl
+```
+
+The helper verifies the HMAC before executing the H2 SQL script with the project's H2 version and confirms a non-empty `.mv.db` file was produced. To verify actual application startup/data, start a separate local instance pointed only at the temporary URL, using the same configured database username/password as the source. It creates a new database with those credentials; they are read from the existing environment, not supplied on the command line:
+
+```powershell
+$env:PERSONAL_RECORDS_DB_URL = $restoreUrl
+.\mvnw.cmd spring-boot:run
+```
+
+Inspect the recovered data through the application, then stop it with Ctrl+C. Do not configure this temporary recovery URL for a test run; automated tests are isolated by `src/test/resources/application.properties`.
+
+To switch to the verified recovered database, deliberately change the application's `PERSONAL_RECORDS_DB_URL` in the environment or deployment configuration to `$restoreUrl`, then start the application. This switches to a separate database without replacing the original files. Preserve the old URL and backup. If recovery validation or startup fails, stop the process and restore the previous `PERSONAL_RECORDS_DB_URL` value (or unset the override to return to the default `%USERPROFILE%\.personal-records\personalrecords` database), then restart. The original database remains untouched and is the rollback path. Do not copy recovered files over the original database. Retain the recovery database until the new instance is confirmed and the rollback period has passed.
+
+Backups created before HMAC signing was added are unsigned and are rejected by helper validation/restore. Create a new signed backup from a trusted source database; do not generate a signature for an old file unless its provenance has been independently established. The helper only supports embedded file-based H2 and SQL scripts compatible with the project's H2 version. Custom server-mode, in-memory, or differently encrypted H2 URLs require an operator-specific procedure and are refused rather than guessed. The helper does not automatically remove old backups, failed temporary restores, or databases; inspect any exact path before manually cleaning it up.
 
 ## Scope and limitations
 

@@ -7,6 +7,7 @@ import com.personalrecords.api.goals.GoalNotFoundException;
 import com.personalrecords.api.goals.ProgressLogNotFoundException;
 import com.personalrecords.api.academic.AcademicConflictException;
 import com.personalrecords.api.academic.AcademicResourceNotFoundException;
+import com.personalrecords.api.exports.ExportFilterException;
 import com.personalrecords.api.records.StudentRecordNotFoundException;
 import com.personalrecords.api.tasks.DailyTaskDateFilterException;
 import com.personalrecords.api.tasks.DailyTaskNotFoundException;
@@ -92,6 +93,14 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(DailyTaskDateFilterException.class)
     public ResponseEntity<ApiError> handleDailyTaskDateFilter(DailyTaskDateFilterException exception) {
+        return response(
+                HttpStatus.BAD_REQUEST,
+                "Validation failed",
+                Map.of(exception.getField(), exception.getMessage()));
+    }
+
+    @ExceptionHandler(ExportFilterException.class)
+    public ResponseEntity<ApiError> handleExportFilter(ExportFilterException exception) {
         return response(
                 HttpStatus.BAD_REQUEST,
                 "Validation failed",

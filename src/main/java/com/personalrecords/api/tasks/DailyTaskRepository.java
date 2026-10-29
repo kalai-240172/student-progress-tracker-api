@@ -3,12 +3,25 @@ package com.personalrecords.api.tasks;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface DailyTaskRepository extends JpaRepository<DailyTask, Long> {
+
+    @Query("""
+            select task from DailyTask task
+            where task.user.id = :userId
+              and (:startDate is null or task.plannedDate >= :startDate)
+              and (:endDate is null or task.plannedDate <= :endDate)
+            order by task.plannedDate, task.id
+            """)
+    Stream<DailyTask> streamForExport(
+            @Param("userId") Long userId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
 
     List<DailyTask> findAllByUser_IdOrderByPlannedDateAscIdAsc(Long userId);
 

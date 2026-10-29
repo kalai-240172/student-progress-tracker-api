@@ -3,7 +3,9 @@ package com.personalrecords.api.goals;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
+import com.personalrecords.api.exports.ProgressLogExportRow;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +16,27 @@ public interface ProgressLogRepository extends JpaRepository<ProgressLog, Long> 
             Long goalId, Long userId);
 
     Optional<ProgressLog> findByIdAndGoal_IdAndGoal_User_Id(Long id, Long goalId, Long userId);
+
+    @Query("""
+            select log.id as id,
+                   log.goal.id as goalId,
+                   log.goal.title as goalTitle,
+                   log.activityDate as activityDate,
+                   log.timeSpentMinutes as timeSpentMinutes,
+                   log.summary as summary,
+                   log.notes as notes,
+                   log.createdAt as createdAt,
+                   log.updatedAt as updatedAt
+            from ProgressLog log
+            where log.goal.user.id = :userId
+              and (:startDate is null or log.activityDate >= :startDate)
+              and (:endDate is null or log.activityDate <= :endDate)
+            order by log.activityDate, log.id
+            """)
+    Stream<ProgressLogExportRow> streamForExport(
+            @Param("userId") Long userId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
 
     @Query("""
             select coalesce(sum(log.timeSpentMinutes), 0) as totalRecordedMinutes,

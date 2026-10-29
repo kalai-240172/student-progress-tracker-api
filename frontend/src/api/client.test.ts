@@ -175,4 +175,45 @@ describe("API client", () => {
       endDate: "2027-05-31",
     });
   });
+
+  it("downloads CSV responses with authenticated inclusive date parameters and server filenames", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response("\uFEFF\"taskId\",\"title\"\r\n", {
+        status: 200,
+        headers: {
+          "Content-Type": "text/csv;charset=UTF-8",
+          "Content-Disposition": 'attachment; filename="tasks.csv"',
+        },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    setCredentials("student@example.com", "StrongPassword123!");
+
+    const result = await api.exportTasks({ startDate: "2026-04-10", endDate: "2026-04-12" });
+
+    expect(String(fetchMock.mock.calls[0][0])).toContain(
+      "/api/exports/tasks?startDate=2026-04-10&endDate=2026-04-12",
+    );
+    expect(new Headers((fetchMock.mock.calls[0][1] as RequestInit).headers).get("Authorization"))
+      .toMatch(/^Basic /);
+    expect(result.filename).toBe("tasks.csv");
+    expect(result.blob).toBeInstanceOf(Blob);
+    expect(result.blob.size).toBeGreaterThan(0);
+  });
+
+  it("encodes academic export identifiers as query parameters", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response("headers", {
+        status: 200,
+        headers: { "Content-Disposition": "attachment; filename=academic-results.csv" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await api.exportAcademic({ academicYearId: 7, semesterId: 11 });
+
+    expect(String(fetchMock.mock.calls[0][0])).toContain(
+      "/api/exports/academic?academicYearId=7&semesterId=11",
+    );
+  });
 });

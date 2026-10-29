@@ -139,6 +139,40 @@ async function request<T>(
   return undefined as T;
 }
 
+export interface CsvDownload {
+  blob: Blob;
+  filename: string;
+}
+
+async function downloadCsv(path: string, fallbackFilename: string): Promise<CsvDownload> {
+  let response: Response;
+  try {
+    response = await fetch(requestUrl(path), {
+      method: "GET",
+      headers: basicAuthorization ? { Authorization: basicAuthorization } : undefined,
+      credentials: "include",
+    });
+  } catch {
+    throw new ApiError(0, "Unable to reach the server. Check your connection and backend status.");
+  }
+  if (response.status === 401) {
+    clearCredentials();
+    window.dispatchEvent(new Event("studyflow:unauthorized"));
+  }
+  if (!response.ok) throw await readError(response);
+  const disposition = response.headers.get("Content-Disposition") || "";
+  const encodedName = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+  const plainName = disposition.match(/filename="?([^";]+)"?/i)?.[1];
+  let filename = fallbackFilename;
+  try {
+    if (encodedName) filename = decodeURIComponent(encodedName);
+    else if (plainName) filename = plainName;
+  } catch {
+    filename = fallbackFilename;
+  }
+  return { blob: await response.blob(), filename };
+}
+
 export const api = {
   register: (body: RegistrationRequest) =>
     request<RegistrationResponse>("/auth/register", {
@@ -183,6 +217,24 @@ export const api = {
   getAcademicYearSummary: (id: number) =>
     request<AcademicYearSummary>(`/academic-years/${id}/summary`),
   getAcademicSummary: () => request<AcademicSummary>("/academic-summary"),
+  exportStudyHistory: (filters: { startDate?: string; endDate?: string } = {}) => {
+    const query = new URLSearchParams();
+    if (filters.startDate) query.set("startDate", filters.startDate);
+    if (filters.endDate) query.set("endDate", filters.endDate);
+    return downloadCsv(`/exports/study-history${query.size ? `?${query}` : ""}`, "study-history.csv");
+  },
+  exportTasks: (filters: { startDate?: string; endDate?: string } = {}) => {
+    const query = new URLSearchParams();
+    if (filters.startDate) query.set("startDate", filters.startDate);
+    if (filters.endDate) query.set("endDate", filters.endDate);
+    return downloadCsv(`/exports/tasks${query.size ? `?${query}` : ""}`, "tasks.csv");
+  },
+  exportAcademic: (filters: { academicYearId?: number; semesterId?: number } = {}) => {
+    const query = new URLSearchParams();
+    if (filters.academicYearId !== undefined) query.set("academicYearId", String(filters.academicYearId));
+    if (filters.semesterId !== undefined) query.set("semesterId", String(filters.semesterId));
+    return downloadCsv(`/exports/academic${query.size ? `?${query}` : ""}`, "academic-results.csv");
+  },
   listGoals: () => request<Goal[]>("/goals"),
   getGoal: (id: number) => request<Goal>(`/goals/${id}`),
   createGoal: (body: GoalRequest) => request<Goal>("/goals", { method: "POST", body }),

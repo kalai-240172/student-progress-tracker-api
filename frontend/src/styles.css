@@ -98,6 +98,18 @@ h1, h2, h3, p { margin-top: 0; }
 .dashboard-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-bottom: 16px; }
 .lower-grid { align-items: stretch; }
 .panel { border: 1px solid #e9ecf2; border-radius: 13px; background: #fff; padding: 21px; box-shadow: var(--shadow); }
+.export-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; margin-bottom: 16px; }
+.export-card { display: flex; min-width: 0; min-height: 245px; flex-direction: column; align-items: flex-start; }
+.export-card-icon { display: grid; width: 36px; height: 36px; place-items: center; margin-bottom: 15px; border-radius: 10px; color: #5b5fe9; background: #f0f0ff; }
+.export-card h2 { margin: 0 0 8px; color: #293248; font-size: 15px; font-weight: 680; }
+.export-card > p { flex: 1; margin: 0 0 18px; color: #838b9d; font-size: 11px; line-height: 1.65; }
+.export-filters { display: grid; width: 100%; gap: 11px; margin: 0 0 17px; }
+.export-date-panel { margin-bottom: 14px; }
+.export-date-filters { display: flex; align-items: flex-end; gap: 14px; }
+.export-date-filters .field { width: min(230px, 100%); }
+.export-validation { display: block; margin: -13px 0 15px; }
+.export-success { margin: -8px 0 16px; color: #13815f; font-size: 12px; }
+.export-security-note { max-width: 900px; color: #858da0; font-size: 11px; line-height: 1.65; }
 .panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
 .panel-heading h2, .detail-side h2 { margin: 0; color: #293248; font-size: 14px; font-weight: 680; letter-spacing: -.2px; }
 .panel-heading p { margin: 5px 0 0; color: #969dae; font-size: 10px; }
@@ -431,6 +443,7 @@ h1, h2, h3, p { margin-top: 0; }
   .report-charts-grid { grid-template-columns: 1fr; }
   .academic-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .export-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 850px) {
   .sidebar { width: 72px; align-items: center; padding: 22px 10px 15px; }
@@ -465,6 +478,9 @@ h1, h2, h3, p { margin-top: 0; }
   .brand-mobile .brand-mark { width: 30px; height: 30px; border-radius: 9px; }
   .mobile-avatar { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 50%; color: #5b60d9; background: #ededff; font-size: 11px; font-weight: 700; }
   .page-content { min-height: calc(100vh - 110px); padding: 28px 17px 33px; }
+  .export-grid { grid-template-columns: 1fr; }
+  .export-date-filters { align-items: stretch; flex-direction: column; }
+  .export-date-filters .field { width: 100%; }
   .app-footer { gap: 12px; padding: 15px 17px; font-size: 9px; }
   .page-header { align-items: flex-start; margin-bottom: 21px; }
   .page-header h1 { font-size: 26px; }

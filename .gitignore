@@ -38,6 +38,12 @@ build/
 *.lock.db
 *.temp.db
 .personal-records/
+# Operator-managed backup artifacts and temporary recovery databases
+/.personal-records-backups/
+/.personal-records-recovery/
+/personalrecords-backup-*.sql
+/personalrecords-backup-*.sql.hmac
+/personalrecords-restore-*/
 .env
 .env.*
 application-local.properties

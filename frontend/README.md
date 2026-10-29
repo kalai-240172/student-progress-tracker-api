@@ -80,6 +80,7 @@ Write requests first fetch `GET /api/csrf`, then send the backend-provided heade
 - Study history: `/history` uses inclusive start/end filters, displays per-day task/time summaries and a planned-versus-recorded-time chart, and fetches owner-scoped overdue tasks and study streaks. Rescheduling updates the existing task rather than creating a replacement.
 - Reports: `/reports` reuses the owner-scoped task date-range API for weekly, monthly, and custom reports. Completion rate uses completed tasks divided by all scheduled tasks in-range; actual time includes recorded durations only, and future task dates are excluded.
 - Academic progress: `/academic` manages owner-scoped academic years, semesters, and subjects through the typed `/api/academic-years`, `/api/semesters`, and `/api/subjects` APIs. Summaries use the official R-2023 CBCCS grade-point mapping and backend-calculated eligible-course GPA/CGPA; marks do not automatically determine grades.
+- CSV exports: `/exports` downloads owner-scoped study history and task data with optional inclusive date ranges, and academic results filtered by academic-year and/or semester IDs. Downloads use authenticated `text/csv` responses as browser files; empty exports contain headers, missing values stay blank, and formula-like text is escaped safely.
 - Student records: `GET/POST /api/records`, `GET/PUT/DELETE /api/records/{id}`.
 - Goals: `GET/POST /api/goals`, `GET/PUT/DELETE /api/goals/{id}`.
 - Goal detail: `GET /api/goals/{goalId}/progress`, `GET/POST /api/goals/{goalId}/logs`, and `GET/PUT/DELETE /api/goals/{goalId}/logs/{logId}`.
@@ -96,4 +97,5 @@ Dashboard activity uses the backend summary's ISO Monday-to-Monday week and cale
 - A `404` for another user's record, goal, log, or task is intentional ownership protection.
 - A study day requires at least one completed task. The current streak ends today or yesterday (if today is not complete yet); the longest streak excludes future dates.
 - Academic percentages are based on recorded obtained/maximum marks only; no marks-to-grade thresholds are assumed.
+- CSV downloads include a UTF-8 BOM, quote and escape CSV fields, and prefix formula-triggering untrusted text with an apostrophe. See the repository README for export endpoint parameters and date-filter semantics.
 - Tests and builds run locally; frontend test requests are mocked and do not require a live API.
