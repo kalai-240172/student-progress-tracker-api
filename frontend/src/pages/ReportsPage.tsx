@@ -169,12 +169,12 @@ export function ReportsPage() {
                 <div className="report-chart" role="img" aria-label="Daily planned and actual study duration chart">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData} margin={{ top: 8, right: 12, bottom: 8, left: 0 }}>
-                      <CartesianGrid stroke="#edf0f5" vertical={false} />
-                      <XAxis dataKey="date" tick={{ fill: "#858da0", fontSize: 10 }} />
-                      <YAxis allowDecimals={false} tick={{ fill: "#858da0", fontSize: 10 }} />
-                      <Tooltip formatter={(value) => [`${value ?? 0} minutes`]} />
-                      <Bar dataKey="plannedMinutes" name="Planned minutes" fill="#777be7" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="actualMinutes" name="Recorded actual minutes" fill="#4aab88" radius={[4, 4, 0, 0]} />
+                      <CartesianGrid stroke="rgb(167 139 250 / 15%)" vertical={false} />
+                      <XAxis dataKey="date" tick={{ fill: "#a5b4c7", fontSize: 10 }} />
+                      <YAxis allowDecimals={false} tick={{ fill: "#a5b4c7", fontSize: 10 }} />
+                      <Tooltip formatter={(value) => [`${value ?? 0} minutes`]} contentStyle={{ borderRadius: 12, border: "1px solid rgb(167 139 250 / 24%)", color: "#f8fafc", background: "#202b43" }} />
+                      <Bar dataKey="plannedMinutes" name="Planned minutes" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="actualMinutes" name="Recorded actual minutes" fill="#c084fc" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -185,12 +185,12 @@ export function ReportsPage() {
                 <div className="report-chart" role="img" aria-label="Daily completed and not completed task count chart">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData} margin={{ top: 8, right: 12, bottom: 8, left: 0 }}>
-                      <CartesianGrid stroke="#edf0f5" vertical={false} />
-                      <XAxis dataKey="date" tick={{ fill: "#858da0", fontSize: 10 }} />
-                      <YAxis allowDecimals={false} tick={{ fill: "#858da0", fontSize: 10 }} />
-                      <Tooltip formatter={(value) => [`${value ?? 0} tasks`]} />
-                      <Bar dataKey="completedTasks" name="Completed tasks" stackId="tasks" fill="#4aab88" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="remainingTasks" name="Not completed" stackId="tasks" fill="#cbd2e2" radius={[4, 4, 0, 0]} />
+                      <CartesianGrid stroke="rgb(167 139 250 / 15%)" vertical={false} />
+                      <XAxis dataKey="date" tick={{ fill: "#a5b4c7", fontSize: 10 }} />
+                      <YAxis allowDecimals={false} tick={{ fill: "#a5b4c7", fontSize: 10 }} />
+                      <Tooltip formatter={(value) => [`${value ?? 0} tasks`]} contentStyle={{ borderRadius: 12, border: "1px solid rgb(167 139 250 / 24%)", color: "#f8fafc", background: "#202b43" }} />
+                      <Bar dataKey="completedTasks" name="Completed tasks" stackId="tasks" fill="#c084fc" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="remainingTasks" name="Not completed" stackId="tasks" fill="#475569" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

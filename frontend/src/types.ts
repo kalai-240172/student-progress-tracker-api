@@ -126,6 +126,27 @@ export interface StudyStreak {
   longestStreakDays: number;
 }
 
+export interface FocusSession {
+  id: number;
+  subjectName: string;
+  subjectCode: string | null;
+  progressGoalId: number | null;
+  goalTitle: string | null;
+  durationMinutes: number;
+  startedAt: string;
+  completedAt: string;
+  createdAt: string;
+}
+
+export interface FocusSessionRequest {
+  subjectId: number;
+  goalId: number | null;
+  durationMinutes: number;
+  startedAt: string;
+  completedAt: string;
+  requestKey: string;
+}
+
 export interface AcademicYear {
   id: number;
   label: string;

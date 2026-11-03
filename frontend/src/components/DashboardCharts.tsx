@@ -10,25 +10,33 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Clock3, Flag } from "lucide-react";
+import { Clock3, Flag, TrendingUp } from "lucide-react";
 import type { Goal, GoalStatus } from "../types";
 import { EmptyState, formatLabel } from "./ui";
 
 const statusColors: Record<GoalStatus, string> = {
-  NOT_STARTED: "#94a3b8",
-  IN_PROGRESS: "#6366f1",
-  COMPLETED: "#10b981",
-  CANCELLED: "#cbd5e1",
+  NOT_STARTED: "#64748b",
+  IN_PROGRESS: "#8b5cf6",
+  COMPLETED: "#6ee7b7",
+  CANCELLED: "#475569",
 };
+
+export interface WeeklyStudyDay {
+  date: string;
+  label: string;
+  minutes: number;
+}
 
 export function DashboardCharts({
   goals,
   weekly,
   monthly,
+  weeklyProgress,
 }: {
   goals: Goal[];
   weekly: number;
   monthly: number;
+  weeklyProgress: WeeklyStudyDay[];
 }) {
   const statuses: GoalStatus[] = ["IN_PROGRESS", "NOT_STARTED", "COMPLETED", "CANCELLED"];
   const statusData = statuses.map((status) => ({
@@ -85,15 +93,41 @@ export function DashboardCharts({
           <div className="activity-chart">
             <ResponsiveContainer width="100%" height={230}>
               <BarChart data={chartData} margin={{ top: 10, right: 12, left: -18, bottom: 0 }}>
-                <CartesianGrid stroke="#edf0f5" vertical={false} />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#718096", fontSize: 12 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: "#718096", fontSize: 11 }} />
+                <CartesianGrid stroke="rgb(167 139 250 / 15%)" vertical={false} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#a5b4c7", fontSize: 12 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: "#a5b4c7", fontSize: 11 }} />
                 <Tooltip
-                  cursor={{ fill: "#f5f6ff" }}
+                  cursor={{ fill: "rgb(167 139 250 / 9%)" }}
                   formatter={(value) => [`${value ?? 0} minutes`, "Study time"]}
-                  contentStyle={{ borderRadius: 12, border: "1px solid #e8ebf2", boxShadow: "0 8px 24px #17203312" }}
+                  contentStyle={{ borderRadius: 12, border: "1px solid rgb(167 139 250 / 24%)", color: "#f8fafc", background: "#202b43", boxShadow: "0 12px 32px rgb(3 8 20 / 40%)" }}
                 />
-                <Bar dataKey="minutes" fill="#6366f1" radius={[7, 7, 2, 2]} maxBarSize={56} />
+                <Bar dataKey="minutes" fill="#8b5cf6" radius={[7, 7, 2, 2]} maxBarSize={56} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+      <div className="panel chart-panel weekly-progress-panel">
+        <div className="panel-heading">
+          <div><h2>Weekly study progress</h2><p>Minutes logged each day this week</p></div>
+          <span className="panel-icon"><TrendingUp size={17} /></span>
+        </div>
+        {weeklyProgress.every((day) => day.minutes === 0) ? (
+          <EmptyState icon={<Clock3 size={22} />} title="Your week is open" description="Log a study session to see your daily progress here." />
+        ) : (
+          <div className="activity-chart">
+            <ResponsiveContainer width="100%" height={230}>
+              <BarChart data={weeklyProgress} margin={{ top: 10, right: 12, left: -18, bottom: 0 }}>
+                <CartesianGrid stroke="rgb(167 139 250 / 15%)" vertical={false} />
+                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: "#a5b4c7", fontSize: 12 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: "#a5b4c7", fontSize: 11 }} />
+                <Tooltip
+                  cursor={{ fill: "rgb(167 139 250 / 9%)" }}
+                  labelFormatter={(_label, entries) => entries[0]?.payload.date ?? ""}
+                  formatter={(value) => [`${value ?? 0} minutes`, "Study time"]}
+                  contentStyle={{ borderRadius: 12, border: "1px solid rgb(167 139 250 / 24%)", color: "#f8fafc", background: "#202b43", boxShadow: "0 12px 32px rgb(3 8 20 / 40%)" }}
+                />
+                <Bar dataKey="minutes" fill="#c084fc" radius={[7, 7, 2, 2]} maxBarSize={56} />
               </BarChart>
             </ResponsiveContainer>
           </div>

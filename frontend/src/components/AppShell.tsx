@@ -13,6 +13,7 @@ import {
   ChartNoAxesCombined,
   GraduationCap,
   Download,
+  Timer,
   X,
 } from "lucide-react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
@@ -22,6 +23,7 @@ const navigation = [
   { to: "/", label: "Overview", icon: LayoutDashboard, end: true },
   { to: "/goals", label: "Goals", icon: Flag },
   { to: "/tasks", label: "Daily tasks", icon: CalendarCheck2 },
+  { to: "/focus", label: "Focus Arena", icon: Timer },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/history", label: "Study history", icon: History },
   { to: "/reports", label: "Reports", icon: ChartNoAxesCombined },
@@ -32,18 +34,33 @@ const navigation = [
 
 export function AppShell() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState("");
   const { logout } = useAuth();
   const navigate = useNavigate();
 
-  const signOut = () => {
-    logout();
-    navigate("/login", { replace: true });
+  const signOut = async () => {
+    setSigningOut(true);
+    setSignOutError("");
+    try {
+      await logout();
+      navigate("/login", { replace: true });
+    } catch (error) {
+      setSignOutError(error instanceof Error ? error.message : "Unable to sign out securely.");
+    } finally {
+      setSigningOut(false);
+    }
   };
 
   const closeMenu = () => setMenuOpen(false);
 
   return (
     <div className="app-shell min-h-screen bg-slate-50 text-slate-800">
+      <div className="app-background" aria-hidden="true">
+        <span className="ambient-orb ambient-orb-one" />
+        <span className="ambient-orb ambient-orb-two" />
+        <span className="ambient-orb ambient-orb-three" />
+      </div>
       {menuOpen && <button className="mobile-backdrop" aria-label="Close navigation" onClick={closeMenu} />}
       <aside className={`sidebar ${menuOpen ? "sidebar-open" : ""}`}>
         <NavLink to="/" className="brand" onClick={closeMenu}>
@@ -70,9 +87,10 @@ export function AppShell() {
             <span className="sidebar-note-icon"><ArrowUpRight size={16} /></span>
             <p>Your progress is built one focused session at a time.</p>
           </div>
-          <button className="nav-link signout-button" onClick={signOut}>
+          {signOutError && <p className="signout-error" role="alert">{signOutError}</p>}
+          <button className="nav-link signout-button" onClick={() => void signOut()} disabled={signingOut}>
             <LogOut size={18} />
-            <span>Sign out</span>
+            <span>{signingOut ? "Logging out…" : "Logout"}</span>
           </button>
           <div className="sidebar-footnote">Personal learning, thoughtfully tracked.</div>
         </div>

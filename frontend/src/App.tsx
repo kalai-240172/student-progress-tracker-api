@@ -13,6 +13,7 @@ const GoalsPage = lazy(() => import("./pages/GoalsPage").then((module) => ({ def
 const GoalFormPage = lazy(() => import("./pages/GoalsPage").then((module) => ({ default: module.GoalFormPage })));
 const GoalDetailPage = lazy(() => import("./pages/GoalsPage").then((module) => ({ default: module.GoalDetailPage })));
 const TasksPage = lazy(() => import("./pages/TasksPage").then((module) => ({ default: module.TasksPage })));
+const FocusArenaPage = lazy(() => import("./pages/FocusArenaPage").then((module) => ({ default: module.FocusArenaPage })));
 const CalendarPage = lazy(() => import("./pages/CalendarPage").then((module) => ({ default: module.CalendarPage })));
 const StudyHistoryPage = lazy(() => import("./pages/StudyHistoryPage").then((module) => ({ default: module.StudyHistoryPage })));
 const ReportsPage = lazy(() => import("./pages/ReportsPage").then((module) => ({ default: module.ReportsPage })));
@@ -20,9 +21,20 @@ const AcademicProgressPage = lazy(() => import("./pages/AcademicProgressPage").t
 const ExportsPage = lazy(() => import("./pages/ExportsPage").then((module) => ({ default: module.ExportsPage })));
 
 function RequireAuth() {
-  const { isAuthenticated, isChecking } = useAuth();
+  const { isAuthenticated, isChecking, sessionError, retrySession } = useAuth();
   const location = useLocation();
   if (isChecking) return <LoadingState />;
+  if (sessionError) {
+    return (
+      <main className="session-error-page">
+        <div className="session-error-card" role="alert">
+          <h1>We couldn’t verify your session</h1>
+          <p>{sessionError}</p>
+          <button className="button button-primary" onClick={retrySession}>Try again</button>
+        </div>
+      </main>
+    );
+  }
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
@@ -54,6 +66,7 @@ export default function App() {
           <Route path="/records/:id/edit" element={<RecordFormPage />} />
           <Route path="/goals" element={<GoalsPage />} />
           <Route path="/tasks" element={<TasksPage />} />
+          <Route path="/focus" element={<FocusArenaPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/history" element={<StudyHistoryPage />} />
           <Route path="/reports" element={<ReportsPage />} />
