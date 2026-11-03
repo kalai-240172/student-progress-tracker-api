@@ -10,6 +10,8 @@ import type {
   DailyTaskRequest,
   DailyTaskStatus,
   DailyTaskSummary,
+  FocusSession,
+  FocusSessionRequest,
   StudyStreak,
   Goal,
   GoalRequest,
@@ -26,7 +28,6 @@ import type {
 } from "../types";
 
 const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || "/api").replace(/\/+$/, "");
-let basicAuthorization: string | null = null;
 let csrfToken: { headerName: string; token: string } | null = null;
 
 export class ApiError extends Error {
@@ -41,26 +42,12 @@ export class ApiError extends Error {
   }
 }
 
-export function setCredentials(email: string, password: string): void {
-  basicAuthorization = `Basic ${btoa(unescape(encodeURIComponent(`${email}:${password}`)))}`;
+export function clearCsrfToken(): void {
   csrfToken = null;
-}
-
-export function clearCredentials(): void {
-  basicAuthorization = null;
-  csrfToken = null;
-}
-
-export function hasCredentials(): boolean {
-  return basicAuthorization !== null;
 }
 
 function requestUrl(path: string): URL {
-  const url = new URL(`${apiBaseUrl}${path}`, window.location.origin);
-  if (basicAuthorization && url.origin !== window.location.origin && apiBaseUrl.startsWith("/")) {
-    throw new ApiError(0, "The API URL must use the current origin when credentials are active.");
-  }
-  return url;
+  return new URL(`${apiBaseUrl}${path}`, window.location.origin);
 }
 
 async function readError(response: Response): Promise<ApiError> {
@@ -89,7 +76,6 @@ async function obtainCsrfToken(): Promise<void> {
   if (csrfToken) return;
   const response = await fetch(requestUrl("/csrf"), {
     method: "GET",
-    headers: basicAuthorization ? { Authorization: basicAuthorization } : undefined,
     credentials: "include",
   });
   if (!response.ok) throw await readError(response);
@@ -104,7 +90,6 @@ async function request<T>(
   const method = options.method || "GET";
   const headers = new Headers();
   if (options.body !== undefined) headers.set("Content-Type", "application/json");
-  if (basicAuthorization) headers.set("Authorization", basicAuthorization);
 
   if (!options.skipCsrf && !["GET", "HEAD", "OPTIONS"].includes(method)) {
     await obtainCsrfToken();
@@ -124,7 +109,7 @@ async function request<T>(
   }
 
   if (response.status === 401) {
-    clearCredentials();
+    clearCsrfToken();
     window.dispatchEvent(new Event("studyflow:unauthorized"));
   }
   if (response.status === 403 && csrfRetry && !["GET", "HEAD", "OPTIONS"].includes(method)) {
@@ -149,14 +134,13 @@ async function downloadCsv(path: string, fallbackFilename: string): Promise<CsvD
   try {
     response = await fetch(requestUrl(path), {
       method: "GET",
-      headers: basicAuthorization ? { Authorization: basicAuthorization } : undefined,
       credentials: "include",
     });
   } catch {
     throw new ApiError(0, "Unable to reach the server. Check your connection and backend status.");
   }
   if (response.status === 401) {
-    clearCredentials();
+    clearCsrfToken();
     window.dispatchEvent(new Event("studyflow:unauthorized"));
   }
   if (!response.ok) throw await readError(response);
@@ -174,12 +158,23 @@ async function downloadCsv(path: string, fallbackFilename: string): Promise<CsvD
 }
 
 export const api = {
+  login: async (email: string, password: string) => {
+    await request<void>("/auth/login", { method: "POST", body: { email, password } });
+    clearCsrfToken();
+  },
+  currentSession: () => request<{ email: string }>("/auth/session"),
+  logout: async () => {
+    await request<void>("/auth/logout", { method: "POST" });
+    clearCsrfToken();
+  },
   register: (body: RegistrationRequest) =>
     request<RegistrationResponse>("/auth/register", {
       method: "POST",
       body,
       skipCsrf: true,
     }),
+  initializeSampleData: () =>
+    request<void>("/sample-data/initialize", { method: "POST" }),
   listRecords: () => request<StudentRecord[]>("/records"),
   getRecord: (id: number) => request<StudentRecord>(`/records/${id}`),
   createRecord: (body: RecordRequest) =>
@@ -262,6 +257,15 @@ export const api = {
   getTodayTaskSummary: () => request<DailyTaskSummary>("/tasks/today-summary"),
   getOverdueTasks: () => request<DailyTask[]>("/tasks/overdue"),
   getStudyStreaks: () => request<StudyStreak>("/tasks/study-streaks"),
+  listFocusSessions: (filters: { startDate: string; endDate: string }) => {
+    const query = new URLSearchParams({
+      startDate: filters.startDate,
+      endDate: filters.endDate,
+    });
+    return request<FocusSession[]>(`/focus-sessions?${query}`);
+  },
+  createFocusSession: (body: FocusSessionRequest) =>
+    request<FocusSession>("/focus-sessions", { method: "POST", body }),
   getTask: (id: number) => request<DailyTask>(`/tasks/${id}`),
   createTask: (body: DailyTaskRequest) =>
     request<DailyTask>("/tasks", { method: "POST", body }),

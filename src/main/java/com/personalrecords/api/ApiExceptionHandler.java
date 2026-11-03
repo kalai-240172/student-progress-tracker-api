@@ -8,6 +8,9 @@ import com.personalrecords.api.goals.ProgressLogNotFoundException;
 import com.personalrecords.api.academic.AcademicConflictException;
 import com.personalrecords.api.academic.AcademicResourceNotFoundException;
 import com.personalrecords.api.exports.ExportFilterException;
+import com.personalrecords.api.focus.FocusSessionDateFilterException;
+import com.personalrecords.api.focus.FocusSessionValidationException;
+import com.personalrecords.api.focus.FocusSubjectNotFoundException;
 import com.personalrecords.api.records.StudentRecordNotFoundException;
 import com.personalrecords.api.tasks.DailyTaskDateFilterException;
 import com.personalrecords.api.tasks.DailyTaskNotFoundException;
@@ -79,6 +82,27 @@ public class ApiExceptionHandler {
     @ExceptionHandler(AcademicResourceNotFoundException.class)
     public ResponseEntity<ApiError> handleAcademicResourceNotFound(AcademicResourceNotFoundException exception) {
         return response(HttpStatus.NOT_FOUND, "The requested academic resource was not found", Map.of());
+    }
+
+    @ExceptionHandler(FocusSubjectNotFoundException.class)
+    public ResponseEntity<ApiError> handleFocusSubjectNotFound(FocusSubjectNotFoundException exception) {
+        return response(HttpStatus.NOT_FOUND, "The requested academic subject was not found", Map.of());
+    }
+
+    @ExceptionHandler(FocusSessionValidationException.class)
+    public ResponseEntity<ApiError> handleFocusSessionValidation(FocusSessionValidationException exception) {
+        return response(
+                HttpStatus.BAD_REQUEST,
+                "Validation failed",
+                Map.of(exception.getField(), exception.getMessage()));
+    }
+
+    @ExceptionHandler(FocusSessionDateFilterException.class)
+    public ResponseEntity<ApiError> handleFocusSessionDateFilter(FocusSessionDateFilterException exception) {
+        return response(
+                HttpStatus.BAD_REQUEST,
+                "Validation failed",
+                Map.of(exception.getField(), exception.getMessage()));
     }
 
     @ExceptionHandler(AcademicConflictException.class)

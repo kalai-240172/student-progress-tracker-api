@@ -1,11 +1,18 @@
 import { z } from "zod";
 import { useForm } from "react-hook-form";
-import { ArrowRight, BookOpenCheck, LockKeyhole } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpenCheck,
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  Mail,
+} from "lucide-react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { api, ApiError } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
-import { Button, FieldError } from "../components/ui";
+import { Button, FieldError, LoadingState } from "../components/ui";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email address"),
@@ -26,11 +33,12 @@ type RegistrationFields = z.infer<typeof registrationSchema>;
 
 export function AuthPage({ mode }: { mode: "login" | "register" }) {
   const isRegister = mode === "register";
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, isChecking, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [formError, setFormError] = useState("");
   const [registered, setRegistered] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const loginForm = useForm<LoginFields>();
   const registerForm = useForm<RegistrationFields>();
@@ -41,6 +49,7 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
   }, [mode]);
 
   if (isAuthenticated) return <Navigate to="/" replace />;
+  if (isChecking) return <LoadingState />;
 
   const submitLogin = loginForm.handleSubmit(async (values) => {
     setFormError("");
@@ -86,23 +95,25 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
   });
 
   return (
-    <main className="auth-page">
-      <div className="auth-brand">
-        <span className="brand-mark"><BookOpenCheck size={20} /></span>
-        <span>studyflow<span className="brand-period">.</span></span>
-      </div>
+    <main className={`auth-page ${isRegister ? "auth-page-register" : "auth-page-login"}`}>
       <div className="auth-content">
+        <div className="auth-brand">
+          <span className="brand-mark"><BookOpenCheck size={20} /></span>
+          <span>StudyFlow<span className="brand-period">.</span></span>
+        </div>
         <div className="auth-intro">
-          <span className="auth-kicker"><span className="kicker-dot" /> YOUR PERSONAL LEARNING SPACE</span>
-          <h1>{isRegister ? "Make room for\nwhat you’re learning." : "Welcome back\nto your progress."}</h1>
-          <p>Set meaningful goals, capture the work you do, and see how consistency adds up.</p>
+          {isRegister && <span className="auth-kicker"><span className="kicker-dot" /> YOUR PERSONAL LEARNING SPACE</span>}
+          <h1>{isRegister ? "Make room for\nwhat you’re learning." : "Welcome Back!"}</h1>
+          {isRegister
+            ? <p>Set meaningful goals, capture the work you do, and see how consistency adds up.</p>
+            : <p>Continue your journey towards better learning.</p>}
         </div>
         <section className="auth-card" aria-labelledby="auth-title">
           <div className="auth-card-heading">
             <div className="auth-card-icon"><LockKeyhole size={19} /></div>
             <div>
-              <h2 id="auth-title">{isRegister ? "Create your account" : "Sign in to Studyflow"}</h2>
-              <p>{isRegister ? "A private space for your learning journey." : "Your goals and records are waiting."}</p>
+              <h2 id="auth-title">{isRegister ? "Create your account" : "Sign in"}</h2>
+              {isRegister && <p>A private space for your learning journey.</p>}
             </div>
           </div>
           {registered ? (
@@ -127,7 +138,18 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
               </label>
               <label className="field">
                 <span>Password</span>
-                <input type="password" autoComplete="new-password" {...registerForm.register("password")} />
+                <div className="password-input-wrap">
+                  <input type={showPassword ? "text" : "password"} autoComplete="new-password" {...registerForm.register("password")} />
+                  <button
+                    className="password-visibility-button"
+                    type="button"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showPassword}
+                    onClick={() => setShowPassword((visible) => !visible)}
+                  >
+                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
+                </div>
                 <small>12–72 characters</small>
                 <FieldError>{registerForm.formState.errors.password?.message}</FieldError>
               </label>
@@ -140,12 +162,27 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
               {formError && <div className="alert alert-error" role="alert">{formError}</div>}
               <label className="field">
                 <span>Email address</span>
-                <input type="email" autoComplete="username" {...loginForm.register("email")} />
+                <div className="auth-input-wrap">
+                  <Mail className="auth-input-icon" size={18} aria-hidden="true" />
+                  <input type="email" autoComplete="username" {...loginForm.register("email")} />
+                </div>
                 <FieldError>{loginForm.formState.errors.email?.message}</FieldError>
               </label>
               <label className="field">
                 <span>Password</span>
-                <input type="password" autoComplete="current-password" {...loginForm.register("password")} />
+                <div className="password-input-wrap">
+                  <LockKeyhole className="auth-input-icon" size={18} aria-hidden="true" />
+                  <input type={showPassword ? "text" : "password"} autoComplete="current-password" {...loginForm.register("password")} />
+                  <button
+                    className="password-visibility-button"
+                    type="button"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showPassword}
+                    onClick={() => setShowPassword((visible) => !visible)}
+                  >
+                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
+                </div>
                 <FieldError>{loginForm.formState.errors.password?.message}</FieldError>
               </label>
               <Button type="submit" className="auth-submit" disabled={loginForm.formState.isSubmitting}>
@@ -161,14 +198,28 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
           )}
         </section>
         <p className="auth-security">
-          <LockKeyhole size={13} /> Credentials are held in memory only and cleared when you sign out or reload.
+          <LockKeyhole size={13} /> Your sign-in is protected by a secure server session.
         </p>
       </div>
-      <div className="auth-decoration" aria-hidden="true">
-        <div className="auth-decoration-orbit orbit-one" />
-        <div className="auth-decoration-orbit orbit-two" />
-        <div className="auth-decoration-dot" />
-      </div>
+      {!isRegister && (
+        <aside className="auth-art-panel" aria-hidden="true">
+          <div className="auth-art-scene">
+            <span className="auth-art-halo auth-art-halo-back" />
+            <span className="auth-art-orbit auth-art-orbit-one" />
+            <span className="auth-art-orbit auth-art-orbit-two" />
+            <span className="auth-art-glass auth-art-glass-left" />
+            <span className="auth-art-glass auth-art-glass-right" />
+            <span className="auth-art-crystal auth-art-crystal-top" />
+            <span className="auth-art-crystal auth-art-crystal-bottom" />
+            <span className="auth-art-core">
+              <span className="auth-art-core-shine" />
+            </span>
+            <span className="auth-art-light auth-art-light-one" />
+            <span className="auth-art-light auth-art-light-two" />
+            <span className="auth-art-light auth-art-light-three" />
+          </div>
+        </aside>
+      )}
     </main>
   );
 }

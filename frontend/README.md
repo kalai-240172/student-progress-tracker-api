@@ -2,6 +2,8 @@
 
 Responsive React + TypeScript frontend for the existing Personal Student Record & Progress Tracking API. The frontend consumes the real Spring Boot registration, records, goals, progress-log, task-planner, summary, and CSRF endpoints; it does not provide mock data or an API.
 
+The shared interface uses a dark navy and purple design system across authentication and all authenticated routes. Responsive layout rules, keyboard focus states, and reduced-motion preferences are shared through `src/styles.css`; chart colours follow the same lavender palette.
+
 ## Prerequisites
 
 - Windows 10/11 with PowerShell
@@ -39,7 +41,7 @@ npm install
 npm run dev
 ```
 
-Open the local URL printed by Vite (normally `http://localhost:5173`). The Vite development server proxies `/api` requests to `http://localhost:8080` by default, so the browser uses one origin for API calls, Basic credentials, and CSRF cookies.
+Open the local URL printed by Vite (normally `http://localhost:5173`). The Vite development server proxies `/api` requests to `http://localhost:8080` by default, so the browser uses one origin for API calls, the server session cookie, and CSRF protection.
 
 To select another backend for local development, create `frontend\.env.local`:
 
@@ -68,14 +70,15 @@ npm run preview
 
 Choose **Create an account** on the sign-in page. Registration uses `POST /api/auth/register`; names, email, and password are validated to match the backend. Then sign in with the registered email and password.
 
-The existing API uses HTTP Basic authentication, not a dedicated login session or token system. The app keeps the Basic authorization value in JavaScript memory only. It never writes raw passwords or credentials to local storage, session storage, cookies, or browser logs. Reloading the page clears the in-memory credentials and signs you out; signing out clears them immediately. This reduces persistence but does not make Basic authentication equivalent to a dedicated session or token flow. Use HTTPS outside local development.
+The browser signs in through `POST /api/auth/login` and uses an HttpOnly, SameSite=Lax server session cookie. The cookie remains valid for up to 12 hours, subject to the server's 12-hour inactivity timeout. On application load, `GET /api/auth/session` restores a valid session; `POST /api/auth/logout` invalidates it. The browser never stores passwords or session credentials in local or session storage. Direct API clients may continue using HTTP Basic authentication for backward compatibility. Use HTTPS in deployment; `SESSION_COOKIE_SECURE` defaults to `true` and may be set to `false` only for local environments that cannot use secure cookies.
 
-Write requests first fetch `GET /api/csrf`, then send the backend-provided header and token. If a token expires, the client refreshes it and retries a write once. Authentication errors clear the in-memory credentials; `400`, `403`, `404`, `409`, network errors, and validation field errors are displayed without including credentials.
+Login and other write requests first fetch `GET /api/csrf`, then send the backend-provided header and token. If a token expires, the client refreshes it and retries a write once. Invalid or expired sessions return students to sign-in; temporary session-verification errors show a retry option.
 
 ## Features and API routes
 
-- Overview: `GET /api/goals`, `GET /api/goals/{id}/progress`, and `GET /api/goals/{goalId}/logs` power the goal totals, actual status counts, weekly/monthly time, and recent sessions. Statistics are never fabricated.
+- Overview: `POST /api/sample-data/initialize`, `GET /api/records`, `GET /api/tasks`, `GET /api/tasks/today-summary`, `GET /api/goals`, `GET /api/goals/{id}/progress`, and `GET /api/goals/{goalId}/logs` power the saved-record count, task metrics, today's study time, goal completion, weekly/monthly time, recent sessions, and upcoming tasks. Sample data is inserted once per account only where a module is empty; dashboard statistics use API data.
 - Daily tasks: `/tasks` calls `GET /api/tasks`, `GET /api/tasks/today-summary`, and the task create, update, status, actual-duration, and delete endpoints. It supports today, all tasks, and a selected date.
+- Focus Arena: `/focus` loads existing academic subjects and goals, then uses `POST /api/focus-sessions` and an inclusive date range `GET /api/focus-sessions` for saved completed sessions. Focus duration is selectable from 5 to 120 minutes in 5-minute steps; short and long breaks remain fixed at 5 and 15 minutes. Focus sessions create completed daily tasks with the selected duration for study history/reports/streaks and progress logs of the same duration for an optionally selected goal. The timer restores paused after refresh; a request key prevents duplicate completion writes.
 - Calendar: `/calendar` requests the visible month or Monday-to-Sunday week using the inclusive task date-range API and displays per-day task/completion counts.
 - Study history: `/history` uses inclusive start/end filters, displays per-day task/time summaries and a planned-versus-recorded-time chart, and fetches owner-scoped overdue tasks and study streaks. Rescheduling updates the existing task rather than creating a replacement.
 - Reports: `/reports` reuses the owner-scoped task date-range API for weekly, monthly, and custom reports. Completion rate uses completed tasks divided by all scheduled tasks in-range; actual time includes recorded durations only, and future task dates are excluded.
@@ -83,10 +86,11 @@ Write requests first fetch `GET /api/csrf`, then send the backend-provided heade
 - CSV exports: `/exports` downloads owner-scoped study history and task data with optional inclusive date ranges, and academic results filtered by academic-year and/or semester IDs. Downloads use authenticated `text/csv` responses as browser files; empty exports contain headers, missing values stay blank, and formula-like text is escaped safely.
 - Student records: `GET/POST /api/records`, `GET/PUT/DELETE /api/records/{id}`.
 - Goals: `GET/POST /api/goals`, `GET/PUT/DELETE /api/goals/{id}`.
+- Focus sessions: `POST /api/focus-sessions` and `GET /api/focus-sessions?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD`.
 - Goal detail: `GET /api/goals/{goalId}/progress`, `GET/POST /api/goals/{goalId}/logs`, and `GET/PUT/DELETE /api/goals/{goalId}/logs/{logId}`.
-- Account access: `POST /api/auth/register`; protected calls use the existing HTTP Basic credentials and CSRF rules.
+- Account access: `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/session`, and `POST /api/auth/logout`; browser calls use session cookies and CSRF protection. HTTP Basic remains available for direct API clients.
 
-Dashboard activity uses the backend summary's ISO Monday-to-Monday week and calendar-month boundaries. Total recorded minutes are summed from each goal's saved summary, and recent activity comes from persisted logs. Goal percentage represents time against a duration target, not learning quality.
+Dashboard activity uses the backend summary's ISO Monday-to-Monday week and calendar-month boundaries. Total recorded minutes are summed from each goal's saved summary, and recent activity comes from persisted logs. Goal percentage represents time against a duration target, not learning quality. Initialization fills each relevant module to five records where needed, including accounts initialized by an earlier release, while leaving existing user records unchanged.
 
 ## Troubleshooting
 

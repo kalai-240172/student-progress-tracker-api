@@ -46,7 +46,7 @@ Invoke-RestMethod http://localhost:8080/api/health
 
 Names must be nonblank and at most 100 characters. Emails must be valid and at most 254 characters; they are trimmed and lowercased before storage and lookup. Passwords must be between 12 and 72 characters and no more than 72 UTF-8 bytes. Passwords are passed unchanged to BCrypt; registration never trims or returns the password. Successful registration returns HTTP 201 and a safe response containing the account ID, name, normalized email, and creation timestamp. Invalid input returns HTTP 400; an existing normalized email returns HTTP 409.
 
-All endpoints other than `GET /api/health` and `POST /api/auth/register` require HTTP Basic authentication using the registered email and password. Spring Security verifies passwords against BCrypt hashes; plain-text passwords are not stored. Invalid or missing credentials return HTTP 401.
+The browser signs in through `POST /api/auth/login` and uses a server-managed HttpOnly session cookie; `GET /api/auth/session` verifies the session and `POST /api/auth/logout` invalidates it. The cookie expires after 12 hours, and the server also expires inactive sessions after 12 hours. `GET /api/health`, `GET /api/csrf`, account registration, and login are public; protected API requests require an authenticated session or HTTP Basic credentials. HTTP Basic remains available for direct API clients for backward compatibility. Spring Security verifies passwords against BCrypt hashes; plain-text passwords are not stored. Invalid or missing credentials return HTTP 401.
 
 ## Student records
 
@@ -144,6 +144,20 @@ Daily tasks let each authenticated user plan study work by title, subject, date,
 
 Date range endpoints are inclusive and require both dates, with `startDate` on or before `endDate`. The `date` filter cannot be combined with a range. Today is based on the server's local date. Summary actual minutes sum only values recorded for today's tasks; missing values are not inferred. All task operations use the authenticated user and inaccessible task IDs return HTTP 404. The authenticated frontend includes the Daily tasks page at `/tasks`.
 
+## Sample learning workspace
+
+The authenticated dashboard initializes an example workspace the first time it is opened for an account. `POST /api/sample-data/initialize` creates realistic student records, daily tasks, learning goals and progress logs, and academic subjects linked to that account. The endpoint is protected by the same authentication and CSRF requirements as other write operations.
+
+Initialization is recorded per account. Existing records are left intact; repeat requests safely fill each relevant module to five records where needed, including accounts initialized by an earlier release. The seed includes records, tasks, goals, study logs, and academic subjects. Seed dates are relative to the current date so today's task summary and upcoming planner entries remain useful.
+
+## Focus Arena
+
+The authenticated `/focus` page lets you select focus sessions from 5 to 120 minutes in 5-minute increments, with a 25-minute default, plus fixed 5-minute short breaks and 15-minute long breaks. Durations of an hour or more use an hours-based countdown. The timer restores in a paused state after a page refresh; only a timer that reaches completion creates a saved session. Browser writes use the authenticated session cookie and CSRF protections; direct API clients can continue to use HTTP Basic.
+
+`POST /api/focus-sessions` accepts the selected owner-scoped academic subject, an optional owner-scoped goal, start/completion instants, the selected 5–120-minute duration in 5-minute increments, and a per-session request key. It persists an immutable subject/goal snapshot, a completed daily task with the selected actual minutes for study history/reports/streaks, and a progress log with the same duration when a goal was selected. These writes are atomic and the server verifies elapsed time meets the selected duration. Repeated submissions with the same account and request key return the existing session rather than adding duplicate tasks or logs. `GET /api/focus-sessions?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD` lists only the authenticated user's completed sessions in the inclusive date range.
+
+The Focus Arena dashboard calculates today's sessions, today's focus time, weekly time, and recent sessions from saved focus-session data. The daily session target defaults to four and can be changed in the current browser tab. XP, badges, levels, and study heatmaps are not included.
+
 ## Calendar and study history
 
 The authenticated frontend provides a responsive month/week calendar at `/calendar` and study history at `/history`. The calendar uses Monday-first weeks, includes adjacent-month dates in the month grid, shows per-date task counts/completion, and loads the displayed period using inclusive `startDate`/`endDate` task filters. Selecting a date shows its tasks.
@@ -194,11 +208,11 @@ The default official R-2023 CBCCS mapping is `O = 10`, `A+ = 9`, `A = 8`, `B+ = 
 
 Percentage is `(obtained marks / maximum marks) × 100`, rounded to two decimal places using half-up rounding; it is unavailable when marks are missing. Semester GPA and cumulative CGPA use `Σ(credits × grade points) / Σ(eligible credits)`, rounded to two decimal places using half-up rounding. Only subjects with an official grade other than `U` are successfully cleared and eligible. `U` and missing-grade subjects are excluded from both weighted points and the eligible-credit denominator; missing marks do not imply a grade. When no eligible credits exist, GPA/CGPA is unavailable (`null`). The backend is authoritative for all academic calculations.
 
-Academic create/update/delete requests use the same authenticated HTTP Basic and CSRF conventions as other protected writes. To run backend tests, use `.\mvnw.cmd clean test` from the repository root. To run frontend tests and build, use `npm test -- --maxWorkers=1` and `npm run build` from `frontend`.
+Academic create/update/delete requests use the same authenticated session-cookie and CSRF conventions as other browser writes. Direct API clients may use HTTP Basic. To run backend tests, use `.\mvnw.cmd clean test` from the repository root. To run frontend tests and build, use `npm test -- --maxWorkers=1` and `npm run build` from `frontend`.
 
 ## CSV data exports
 
-The authenticated frontend provides an **Export data** page at `/exports`. It downloads the current user's study history, daily tasks, or academic results as UTF-8 CSV files. The endpoints require HTTP Basic authentication and use the authenticated principal for ownership; client-supplied user IDs are not accepted. The endpoints are read-only `GET` requests and follow the existing CSRF policy.
+The authenticated frontend provides an **Export data** page at `/exports`. It downloads the current user's study history, daily tasks, or academic results as UTF-8 CSV files. The endpoints require an authenticated session or HTTP Basic credentials and use the authenticated principal for ownership; client-supplied user IDs are not accepted. The endpoints are read-only `GET` requests and follow the existing CSRF policy.
 
 | Method | Endpoint | Query parameters | Export |
 | --- | --- | --- | --- |
@@ -212,7 +226,7 @@ Files include a UTF-8 byte-order mark for spreadsheet compatibility. Every field
 
 ## CSRF for API clients
 
-CSRF protection remains enabled for state-changing requests; only public account registration is excluded. After authenticating with HTTP Basic, fetch a token from `GET /api/csrf`, retain the session cookie, and send the returned token using the returned header name (normally `X-CSRF-TOKEN`) on `POST`, `PUT`, `PATCH`, and `DELETE` requests for records, goals, logs, tasks, and academic data. Do not disable CSRF to use the APIs.
+CSRF protection remains enabled for state-changing requests; only public account registration is excluded. Fetch a token from `GET /api/csrf`, retain the session cookie, and send the returned token using the returned header name (normally `X-CSRF-TOKEN`) on login, logout, and other `POST`, `PUT`, `PATCH`, and `DELETE` requests. Do not disable CSRF to use the APIs.
 
 For example, with PowerShell, keep a web session and supply the token header:
 

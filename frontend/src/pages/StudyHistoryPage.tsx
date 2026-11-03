@@ -134,12 +134,12 @@ export function StudyHistoryPage() {
               <div className="history-chart" role="img" aria-label="Daily planned and actual task minutes bar chart">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} margin={{ top: 8, right: 12, bottom: 8, left: 0 }}>
-                    <CartesianGrid stroke="#edf0f5" vertical={false} />
-                    <XAxis dataKey="date" tick={{ fill: "#858da0", fontSize: 10 }} />
-                    <YAxis allowDecimals={false} tick={{ fill: "#858da0", fontSize: 10 }} />
-                    <Tooltip formatter={(value) => [`${value} min`]} />
-                    <Bar dataKey="planned" name="Planned" fill="#777be7" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="actual" name="Actual" fill="#4aab88" radius={[4, 4, 0, 0]} />
+                    <CartesianGrid stroke="rgb(167 139 250 / 15%)" vertical={false} />
+                    <XAxis dataKey="date" tick={{ fill: "#a5b4c7", fontSize: 10 }} />
+                    <YAxis allowDecimals={false} tick={{ fill: "#a5b4c7", fontSize: 10 }} />
+                    <Tooltip formatter={(value) => [`${value} min`]} contentStyle={{ borderRadius: 12, border: "1px solid rgb(167 139 250 / 24%)", color: "#f8fafc", background: "#202b43" }} />
+                    <Bar dataKey="planned" name="Planned" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="actual" name="Actual" fill="#c084fc" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
